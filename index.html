@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seeing the System | DSC Capstone</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">DSC Capstone <span class="badge-nav">SDG&E</span></div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#problem">Problem</a></li>
+                <li><a href="#methods">Methods</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#application">Application</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header id="home" class="hero-opt2">
+        <div class="hero-grid">
+            <div class="hero-text-content">
+                <span class="tag-line">● Industry Collaboration with SDG&E</span>
+                <h1 class="hero-title-left">Seeing the System</h1>
+                <h2 class="hero-subtitle-left">A World Model for Scheduling</h2>
+                <p class="hero-desc">
+                    Transforming operational scheduling into a system-level intelligence process. 
+                    We move beyond task-level feasibility to optimize for risk awareness, 
+                    [cite_start]long-term efficiency, and structural resilience[cite: 16].
+                </p>
+                
+                <a href="#problem" class="btn-tech">Explore the Project &rarr;</a>
+                
+                <div class="tech-team-info">
+                    <div class="team-group">
+                        <strong>Team:</strong> 
+                        <span>Zhenghao Gong, Bingyan Liu, Stephanie Wang, Weijie Zhang</span>
+                    </div>
+                    <div class="team-group">
+                        <strong>Mentors:</strong> 
+                        <span>Phi Nguyen, Fatemeh Aarabi, Mike Hilden</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="visual-box">
+                    <div class="graph-icon-placeholder">
+                        <div class="node n1"></div>
+                        <div class="node n2"></div>
+                        <div class="node n3"></div>
+                        <div class="line l1"></div>
+                        <div class="line l2"></div>
+                    </div>
+                    <p class="visual-caption">Heterogeneous Graph Representation<br><span style="font-size:0.8em; color:#94a3b8;">Tasks • Crews • Technicians • Districts</span></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="problem" class="section">
+        <div class="section-header">
+            <span class="section-tag">The Challenge</span>
+            <h2>Short-term Feasibility vs. Systemic Health</h2>
+            <p>Why traditional scheduling pipelines miss the bigger picture.</p>
+        </div>
+        
+        <div class="cards-container">
+            <div class="card">
+                <div class="card-content">
+                    <div class="icon-box">⚠️</div>
+                    <h3>The Problem</h3>
+                    [cite_start]<p>Current pipelines prioritize short-term rule satisfaction. This leads to "invisible" long-term risks like overdue accumulation, regional congestion, and uneven workload distribution that only emerge over time[cite: 15].</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <div class="icon-box">🌐</div>
+                    <h3>The Solution</h3>
+                    <p>A "World Model" that treats scheduling as an interconnected system. [cite_start]We evaluate candidate schedules not just on validity, but on probabilistic risk, duration deviation, and resilience[cite: 18].</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <div class="icon-box">📊</div>
+                    <h3>Data Representation</h3>
+                    [cite_start]<p>Constructed a heterogeneous graph from the CLICK dataset: 5.4M task nodes and 22k engineer nodes, linked by operational logic to capture hidden dependencies[cite: 19, 70].</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="methods" class="section bg-light">
+        <div class="section-header">
+            <span class="section-tag">Our Approach</span>
+            <h2>Graph-based World Model</h2>
+            <p>Leveraging GNNs to capture structural and temporal dependencies.</p>
+        </div>
+        
+        <div class="methods-grid">
+            <div class="method-box">
+                <h3>Baseline: MLP</h3>
+                <p>Non-graph baseline treating tasks independently. [cite_start]Used to benchmark the value of structural information[cite: 92].</p>
+            </div>
+            <div class="method-box highlight-method">
+                <h3>RGCN</h3>
+                [cite_start]<p><strong>Relational Graph Convolutional Networks.</strong> Distinguished semantically different interactions (e.g., assignment vs. geographic)[cite: 95].</p>
+            </div>
+            <div class="method-box highlight-method">
+                <h3>GraphSAGE</h3>
+                [cite_start]<p><strong>Scalable Inductive Learning.</strong> Aggregates neighborhood features to capture local structural context efficiently[cite: 101].</p>
+            </div>
+            <div class="method-box highlight-method">
+                <h3>HGT</h3>
+                [cite_start]<p><strong>Heterogeneous Graph Transformer.</strong> Uses attention mechanisms to weigh messages based on node and edge types[cite: 107].</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="results" class="section">
+        <div class="section-header">
+            <span class="section-tag">Key Findings</span>
+            <h2>Results & Analysis</h2>
+            <p>Empirical evidence of system-level learnability.</p>
+        </div>
+        
+        <div class="results-container">
+            <div class="result-placeholder">
+                <h4>Model Performance Comparison</h4>
+                <p>Comparison of Smooth L1 Loss across MLP, GraphSAGE, RGCN, and HGT architectures.</p>
+                <div class="fake-chart">
+                    <span>[ Chart: Training Convergence & Loss Curves to be supplemented ]</span>
+                </div>
+            </div>
+
+            <div class="result-placeholder">
+                <h4>Graph Structural Analysis</h4>
+                [cite_start]<p><strong>Moran's I Analysis:</strong> Confirmed strong spatial autocorrelation ($I \approx 1.95$ for dim 0), proving that scheduling data has non-random, learnable structure[cite: 369].</p>
+                [cite_start]<p><strong>Smoothness:</strong> Real engineer features are significantly smoother than randomized baselines[cite: 313].</p>
+                <div class="fake-chart">
+                    <span>[ Chart: Feature Smoothness & Correlation Heatmap to be supplemented ]</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="application" class="section bg-dark">
+        <div class="section-header text-white">
+            <span class="section-tag">Deployment</span>
+            <h2>Interactive Dashboard</h2>
+            <p>From predictive modeling to practical decision support.</p>
+        </div>
+        
+        <div class="app-showcase">
+            <div class="app-desc">
+                <h3>Decision Support Simulator</h3>
+                <p>An independent evaluation layer that operates alongside existing tools. Planners can:</p>
+                <ul>
+                    <li>Upload candidate schedules.</li>
+                    <li>View system-level risk scores (Delay, Congestion).</li>
+                    <li>Identify specific bottleneck districts.</li>
+                </ul>
+                <button class="btn-outline">View Demo Video (Coming Soon)</button>
+            </div>
+            <div class="app-visual">
+                <div class="monitor">
+                    <div class="screen">
+                        <span>[ Dashboard Interface Screenshot to be supplemented ]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2026 DSC Capstone Team. Data Science Institute, UCSD.</p>
+            <p class="footer-note">Project in collaboration with San Diego Gas & Electric (SDG&E).</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

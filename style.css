@@ -1,0 +1,453 @@
+/* --- 全局变量与重置 --- */
+:root {
+    --primary: #0f172a;       /* 深岩灰/黑 */
+    --accent: #0284c7;        /* 科技蓝 */
+    --text-main: #334155;     /* 主要文字 */
+    --text-light: #64748b;    /* 次要文字 */
+    --bg-light: #f8fafc;      /* 浅灰背景 */
+    --border: #e2e8f0;        /* 边框色 */
+    --card-bg: rgba(255, 255, 255, 0.7);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Manrope', sans-serif;
+    color: var(--text-main);
+    line-height: 1.6;
+    background-color: #ffffff;
+    overflow-x: hidden; /* 防止移动端横向滚动 */
+}
+
+/* --- 导航栏 --- */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.badge-nav {
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2.5rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--accent);
+}
+
+/* --- Hero Section (方案二核心) --- */
+.hero-opt2 {
+    padding: 10rem 2rem 6rem;
+    max-width: 1300px;
+    margin: 0 auto;
+    min-height: 90vh; /* 撑满屏幕高度 */
+    display: flex;
+    align-items: center;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr; /* 左侧文字稍微宽一点 */
+    gap: 4rem;
+    align-items: center;
+    width: 100%;
+}
+
+/* Hero 文字部分 */
+.tag-line {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title-left {
+    font-size: 4.5rem; /* 大号标题 */
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    letter-spacing: -2px;
+}
+
+.hero-subtitle-left {
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+}
+
+.hero-desc {
+    font-size: 1.15rem;
+    color: var(--text-main);
+    max-width: 90%;
+    margin-bottom: 3rem;
+}
+
+.btn-tech {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    margin-bottom: 3rem;
+}
+
+.btn-tech:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(2, 132, 199, 0.5);
+}
+
+.tech-team-info {
+    border-left: 3px solid var(--border);
+    padding-left: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.team-group {
+    margin-bottom: 0.5rem;
+}
+
+.team-group strong {
+    color: var(--primary);
+    margin-right: 0.5rem;
+}
+
+/* Hero 右侧可视化部分 */
+.hero-visual {
+    position: relative;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.visual-box {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 20px;
+    border: 1px solid white;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 简单的 CSS 动画图示占位符 */
+.graph-icon-placeholder {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.node {
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 0 15px var(--accent);
+    animation: pulse 3s infinite ease-in-out;
+}
+
+.n1 { top: 20%; left: 50%; }
+.n2 { top: 70%; left: 20%; animation-delay: 0.5s; background: #6366f1; }
+.n3 { top: 70%; left: 80%; animation-delay: 1s; background: #10b981; }
+
+.line {
+    position: absolute;
+    background: #cbd5e1;
+    height: 2px;
+    transform-origin: 0 0;
+}
+.l1 { top: 20%; left: 50%; width: 120px; transform: rotate(115deg); }
+.l2 { top: 20%; left: 50%; width: 120px; transform: rotate(65deg); }
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+.visual-caption {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-main);
+    z-index: 10;
+}
+
+/* --- 通用 Section 样式 --- */
+.section {
+    padding: 6rem 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.section-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 4rem;
+}
+
+.section-tag {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
+}
+
+.bg-light { background-color: var(--bg-light); }
+.bg-dark { background-color: var(--primary); color: white; }
+
+/* --- 移动点亮卡片 (Spotlight Cards) --- */
+.cards-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background-color: rgba(255, 255, 255, 0.5); /* 半透明 */
+    border-radius: 12px;
+    position: relative;
+    flex: 1;
+    min-width: 300px;
+    max-width: 380px;
+    cursor: default;
+    border: 1px solid var(--border);
+    overflow: hidden; /* 关键：裁剪光晕 */
+}
+
+/* 光晕层 */
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 12px;
+    background: radial-gradient(
+        600px circle at var(--mouse-x) var(--mouse-y), 
+        rgba(2, 132, 199, 0.15), /* 蓝色光晕 */
+        transparent 40%
+    );
+    opacity: 0; /* 默认隐藏 */
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.card:hover::before { opacity: 1; }
+
+.card-content {
+    padding: 2.5rem;
+    height: 100%;
+    position: relative;
+    z-index: 2; /* 确保文字在光晕上 */
+    background: rgba(255,255,255,0.01); /* 极微弱背景让其可点击 */
+}
+
+.icon-box {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    background: #f1f5f9;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+}
+
+.card h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.card p {
+    font-size: 0.95rem;
+    color: var(--text-light);
+}
+
+/* --- Methods Grid --- */
+.methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.method-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    transition: transform 0.3s;
+}
+
+.method-box:hover { transform: translateY(-5px); }
+.highlight-method { border-left: 4px solid var(--accent); }
+.method-box h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary); }
+.method-box p { font-size: 0.9rem; color: var(--text-light); }
+
+/* --- Results --- */
+.results-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    gap: 3rem;
+}
+
+.result-placeholder {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.result-placeholder h4 { margin-bottom: 1rem; color: var(--primary); }
+
+.fake-chart {
+    height: 200px;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    margin-top: 1.5rem;
+    font-style: italic;
+}
+
+/* --- Application (Dark) --- */
+.text-white h2, .text-white p, .text-white .section-tag { color: white !important; }
+.text-white p { opacity: 0.8; }
+.text-white .section-tag { color: #38bdf8 !important; }
+
+.app-showcase {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.app-desc { color: #cbd5e1; }
+.app-desc h3 { color: white; font-size: 1.5rem; margin-bottom: 1rem; }
+.app-desc ul { list-style: none; margin-bottom: 2rem; }
+.app-desc li { margin-bottom: 0.5rem; padding-left: 1.5rem; position: relative; }
+.app-desc li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); }
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.btn-outline:hover { border-color: white; background: rgba(255,255,255,0.05); }
+
+.monitor {
+    background: #1e293b;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.screen {
+    background: #0f172a;
+    height: 300px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    border: 2px dashed #334155;
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: white;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+.footer-note { margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.7; }
+
+/* --- 响应式 --- */
+@media (max-width: 900px) {
+    .hero-grid, .app-showcase { grid-template-columns: 1fr; }
+    .hero-opt2 { padding-top: 8rem; text-align: center; }
+    .hero-title-left { font-size: 3rem; }
+    .hero-visual { height: 300px; margin-top: 2rem; }
+    .tech-team-info { border-left: none; padding-left: 0; margin-top: 2rem; }
+}
