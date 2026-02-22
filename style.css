@@ -131,22 +131,54 @@ body {
     margin-bottom: 3rem;
 }
 
+/* --- 核心按钮：默认科技蓝，悬浮变 Apple 风深灰色 --- */
 .btn-tech {
     display: inline-block;
     padding: 1rem 2.5rem;
-    background: var(--primary);
+    background: var(--accent); /* 科技蓝 */
     color: #fff;
     text-decoration: none;
     font-weight: 600;
-    border-radius: 6px;
-    transition: all 0.3s ease;
+    border-radius: 8px; /* 稍微加大一点圆角，更符合现在 Apple 的审美 */
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Apple 式丝滑阻尼动画 */
     margin-bottom: 3rem;
 }
 
+/* 鼠标悬浮：平滑过渡到 Apple 深灰色 */
 .btn-tech:hover {
-    background: var(--accent);
+    background: #1d1d1f; /* 苹果官网标志性深灰 */
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px -10px rgba(2, 132, 199, 0.5);
+    box-shadow: 0 10px 24px rgba(29, 29, 31, 0.15); /* 更柔和、通透的灰色阴影 */
+}
+
+/* --- 按钮组容器 --- */
+.hero-actions {
+    display: flex;
+    gap: 1.5rem; /* 这里控制两个按钮之间的间距，1.5rem(约24px)非常舒适 */
+    margin-bottom: 3rem; /* 保持原来与下方团队信息的距离 */
+    flex-wrap: wrap; /* 当手机屏幕太窄时，按钮会自动换成上下排列 */
+}
+
+/* 因为外层加了 margin-bottom，重置内部按钮的底部边距 */
+.hero-actions .btn-tech {
+    margin-bottom: 0;
+}
+
+/* --- 次级线框按钮：默认蓝色线框，悬浮变 Apple 深灰实心 --- */
+.btn-tech.btn-outline-tech {
+    background: transparent;
+    color: var(--accent); 
+    border: 2px solid var(--accent); 
+    box-shadow: none; 
+}
+
+/* 鼠标悬浮：平滑过渡到 Apple 深灰色 */
+.btn-tech.btn-outline-tech:hover {
+    background: #1d1d1f; /* 苹果官网标志性深灰 */
+    color: #fff; 
+    border-color: #1d1d1f; 
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(29, 29, 31, 0.15); /* 同样的柔和灰色阴影 */
 }
 
 .tech-team-info {
