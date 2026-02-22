@@ -11,9 +11,23 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">WOW Model</div>
-            <!-- <span class="badge-nav">HDSI & SDG&E</span> -->
-            <ul class="nav-links">
+            <div class="logo logo-opt1">
+                <div class="wow-icon-graph">
+                    <span class="dot dot-1"></span>
+                    <span class="dot dot-2"></span>
+                    <span class="dot dot-3"></span>
+                </div>
+                <span class="wow-text">WOW</span>
+                <span class="model-text">Model</span>
+            </div>
+
+            <div class="mobile-menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+
+            <ul class="nav-links" id="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#problem">Problem</a></li>
                 <li><a href="#methods">Methods</a></li>
@@ -32,10 +46,11 @@
                 <p class="hero-desc">
                     Transforming operational scheduling into a system-level intelligence process. 
                     We move beyond task-level feasibility to optimize for risk awareness, 
-                    [cite_start]long-term efficiency, and structural resilience[cite: 16].
+                    long-term efficiency, and structural resilience.
                 </p>
                 
-                <a href="#problem" class="btn-tech">Explore the Project &rarr;</a>
+                <!-- <a href="#problem" class="btn-tech">Explore the Project &rarr;</a> -->
+                <a href="DSC_Capstone_Report.pdf" target="_blank" class="btn-tech">Read Full Report &rarr;</a>
                 
                 <div class="tech-team-info">
                     <div class="team-group">
@@ -76,21 +91,21 @@
                 <div class="card-content">
                     <div class="icon-box">⚠️</div>
                     <h3>The Problem</h3>
-                    [cite_start]<p>Current pipelines prioritize short-term rule satisfaction. This leads to "invisible" long-term risks like overdue accumulation, regional congestion, and uneven workload distribution that only emerge over time[cite: 15].</p>
+                    <p>Current pipelines prioritize short-term rule satisfaction. This leads to "invisible" long-term risks like overdue accumulation, regional congestion, and uneven workload distribution that only emerge over time.</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-content">
                     <div class="icon-box">🌐</div>
                     <h3>The Solution</h3>
-                    <p>A "World Model" that treats scheduling as an interconnected system. [cite_start]We evaluate candidate schedules not just on validity, but on probabilistic risk, duration deviation, and resilience[cite: 18].</p>
+                    <p>A "World Model" that treats scheduling as an interconnected system. We evaluate candidate schedules not just on validity, but on probabilistic risk, duration deviation, and resilience.</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-content">
                     <div class="icon-box">📊</div>
                     <h3>Data Representation</h3>
-                    [cite_start]<p>Constructed a heterogeneous graph from the CLICK dataset: 5.4M task nodes and 22k engineer nodes, linked by operational logic to capture hidden dependencies[cite: 19, 70].</p>
+                    <p>Constructed a heterogeneous graph from the CLICK dataset: 5.4M task nodes and 22k engineer nodes, linked by operational logic to capture hidden dependencies.</p>
                 </div>
             </div>
         </div>
@@ -106,19 +121,19 @@
         <div class="methods-grid">
             <div class="method-box">
                 <h3>Baseline: MLP</h3>
-                <p>Non-graph baseline treating tasks independently. [cite_start]Used to benchmark the value of structural information[cite: 92].</p>
+                <p>Non-graph baseline treating tasks independently. Used to benchmark the value of structural information.</p>
             </div>
             <div class="method-box highlight-method">
                 <h3>RGCN</h3>
-                [cite_start]<p><strong>Relational Graph Convolutional Networks.</strong> Distinguished semantically different interactions (e.g., assignment vs. geographic)[cite: 95].</p>
+                <p><strong>Relational Graph Convolutional Networks.</strong> Distinguished semantically different interactions (e.g., assignment vs. geographic).</p>
             </div>
             <div class="method-box highlight-method">
                 <h3>GraphSAGE</h3>
-                [cite_start]<p><strong>Scalable Inductive Learning.</strong> Aggregates neighborhood features to capture local structural context efficiently[cite: 101].</p>
+                <p><strong>Scalable Inductive Learning.</strong> Aggregates neighborhood features to capture local structural context efficiently.</p>
             </div>
             <div class="method-box highlight-method">
                 <h3>HGT</h3>
-                [cite_start]<p><strong>Heterogeneous Graph Transformer.</strong> Uses attention mechanisms to weigh messages based on node and edge types[cite: 107].</p>
+                <p><strong>Heterogeneous Graph Transformer.</strong> Uses attention mechanisms to weigh messages based on node and edge types.</p>
             </div>
         </div>
     </section>
@@ -141,8 +156,8 @@
 
             <div class="result-placeholder">
                 <h4>Graph Structural Analysis</h4>
-                [cite_start]<p><strong>Moran's I Analysis:</strong> Confirmed strong spatial autocorrelation ($I \approx 1.95$ for dim 0), proving that scheduling data has non-random, learnable structure[cite: 369].</p>
-                [cite_start]<p><strong>Smoothness:</strong> Real engineer features are significantly smoother than randomized baselines[cite: 313].</p>
+                <p><strong>Moran's I Analysis:</strong> Confirmed strong spatial autocorrelation ($I \approx 1.95$ for dim 0), proving that scheduling data has non-random, learnable structure.</p>
+                <p><strong>Smoothness:</strong> Real engineer features are significantly smoother than randomized baselines.</p>
                 <div class="fake-chart">
                     <span>[ Chart: Feature Smoothness & Correlation Heatmap to be supplemented ]</span>
                 </div>

@@ -451,3 +451,108 @@ footer {
     .hero-visual { height: 300px; margin-top: 2rem; }
     .tech-team-info { border-left: none; padding-left: 0; margin-top: 2rem; }
 }
+
+.logo-opt1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+.wow-icon-graph {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+}
+.wow-icon-graph .dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    mix-blend-mode: multiply; /* 让交叠部分颜色加深，很有质感 */
+}
+.dot-1 { top: 0; left: 6px; background-color: #0284c7; } /* 科技蓝 */
+.dot-2 { bottom: 2px; left: 0; background-color: #38bdf8; } /* 浅天蓝 */
+.dot-3 { bottom: 2px; right: 0; background-color: #818cf8; } /* 靛蓝 */
+
+.wow-text {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+}
+.model-text {
+    font-weight: 400;
+    font-size: 1.3rem;
+    color: #64748b;
+    margin-left: -4px; /* 让 Model 贴紧 WOW */
+}
+
+/* --- 移动端汉堡菜单按钮（大屏幕时隐藏） --- */
+.mobile-menu-toggle {
+    display: none; /* 默认不显示 */
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 1001; /* 确保按钮始终在最上层 */
+}
+
+/* 汉堡菜单的横杠 */
+.mobile-menu-toggle .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary); /* 跟随主色调 */
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* --- 响应式适配 (当屏幕宽度 <= 768px 时生效) --- */
+@media (max-width: 768px) {
+    /* 1. 显示汉堡按钮 */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    /* 2. 隐藏并重构导航链接面板 */
+    .nav-links {
+        position: absolute;
+        top: 100%; /* 在导航栏正下方 */
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px); /* 毛玻璃效果 */
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 0;
+        gap: 2rem;
+        
+        /* 动画初始状态：向上平移隐藏，透明度为0 */
+        transform: translateY(-150%);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 999;
+        pointer-events: none; /* 隐藏时无法点击 */
+    }
+
+    /* 3. JS 触发展开后的状态 */
+    .nav-links.active {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* 4. 汉堡按钮变成叉叉 (X) 的动画 */
+    .mobile-menu-toggle.active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .mobile-menu-toggle.active .bar:nth-child(2) {
+        opacity: 0; /* 中间横杠消失 */
+    }
+    .mobile-menu-toggle.active .bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+}

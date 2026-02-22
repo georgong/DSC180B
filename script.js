@@ -1,19 +1,36 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 选中所有的特效卡片
+    
+    // --- 1. 卡片移动点亮特效 ---
     const cards = document.querySelectorAll(".card");
-
     cards.forEach(card => {
         card.addEventListener("mousemove", e => {
-            // 获取卡片的位置和尺寸信息
             const rect = card.getBoundingClientRect();
-            
-            // 计算鼠标在卡片内部的相对坐标
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // 将坐标传入 CSS 变量
             card.style.setProperty("--mouse-x", `${x}px`);
             card.style.setProperty("--mouse-y", `${y}px`);
         });
     });
+
+    // --- 2. 响应式移动端导航栏控制 ---
+    const mobileMenuBtn = document.getElementById('mobile-menu');
+    const navLinksContainer = document.getElementById('nav-links');
+    const navItems = document.querySelectorAll('.nav-links a');
+
+    // 点击汉堡按钮，展开/收起菜单
+    if (mobileMenuBtn && navLinksContainer) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navLinksContainer.classList.toggle('active');
+        });
+
+        // 用户点击某一个链接后，自动收起菜单
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                mobileMenuBtn.classList.remove('active');
+                navLinksContainer.classList.remove('active');
+            });
+        });
+    }
 });
