@@ -510,8 +510,12 @@ footer {
 .wow-text {
     font-weight: 800;
     font-size: 1.3rem;
-    color: #0f172a;
     letter-spacing: -0.5px;
+    /* Apple 风格的文字渐变魔法 */
+    background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 .model-text {
     font-weight: 400;
