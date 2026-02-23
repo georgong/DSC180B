@@ -1,0 +1,8 @@
+<svg width="64" height="64" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .dot { mix-blend-mode: multiply; }
+  </style>
+  <circle cx="12" cy="8" r="6" fill="#0284c7" class="dot"/>
+  <circle cx="7" cy="17" r="6" fill="#38bdf8" class="dot"/>
+  <circle cx="17" cy="17" r="6" fill="#818cf8" class="dot"/>
+</svg>
