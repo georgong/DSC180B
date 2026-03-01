@@ -301,15 +301,25 @@
       tooltipEl.classList.add('visible');
     }
 
+    function resolveAsset(path) {
+      try {
+        return new URL(path, window.location.href).href;
+      } catch (_) {
+        return path;
+      }
+    }
+
     async function loadTsneAndBuildScene() {
       let data;
       try {
-        const nodesRes = await fetch('tsne_nodes.json');
+        const nodesUrl = resolveAsset('tsne_nodes.json');
+        const nodesRes = await fetch(nodesUrl);
         if (!nodesRes.ok) throw new Error(`tsne_nodes.json ${nodesRes.status}`);
         data = await nodesRes.json();
         if (!data || typeof data !== 'object') throw new Error('Invalid tsne_nodes.json');
 
-        const mappingRes = await fetch('w6key_name_mapping.json').catch(() => null);
+        const mappingUrl = resolveAsset('w6key_name_mapping.json');
+        const mappingRes = await fetch(mappingUrl).catch(() => null);
         if (mappingRes && mappingRes.ok) {
           try {
             const raw = await mappingRes.json();
