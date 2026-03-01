@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hidden Layer → T-SNE Visualization</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    #canvas-wrap {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      cursor: crosshair;
+    }
+    #canvas-wrap canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    .hint {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      opacity: 0.7;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #canvas-wrap:hover .hint {
+      opacity: 0.4;
+    }
+    .state-label {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.5;
+      transition: opacity 0.4s;
+    }
+    .controls-row {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+    .controls-row label {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    .controls-row select {
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      background: rgba(20, 20, 30, 0.9);
+      border: 1px solid rgba(68, 136, 255, 0.4);
+      border-radius: 6px;
+      color: #e0e0e0;
+      cursor: pointer;
+      min-width: 200px;
+      max-width: 320px;
+    }
+    #node-tooltip {
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      background: rgba(10, 10, 20, 0.95);
+      border: 1px solid rgba(68, 136, 255, 0.5);
+      border-radius: 8px;
+      color: #e8e8e8;
+      pointer-events: none;
+      z-index: 100;
+      max-width: 280px;
+      white-space: pre-wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+    #node-tooltip.visible {
+      opacity: 1;
+    }
+    .flow-regions-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 12px;
+      background: rgba(20, 20, 30, 0.9);
+      border: 1px solid rgba(68, 136, 255, 0.5);
+      border-radius: 6px;
+      color: #e0e0e0;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 10;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .flow-regions-btn:hover {
+      background: rgba(40, 40, 55, 0.95);
+      border-color: rgba(68, 136, 255, 0.8);
+    }
+    .flow-regions-btn.active {
+      background: rgba(68, 100, 180, 0.4);
+      border-color: rgba(100, 160, 255, 0.9);
+    }
+  </style>
+</head>
+<body>
+  <div id="node-tooltip"></div>
+  <div id="canvas-wrap">
+    <button type="button" class="flow-regions-btn" id="flow-regions-btn" title="Continuous: gradient flow; Categorical: region map">Flow / Regions</button>
+    <span class="state-label" id="state-label">Assignments · Last hidden (128-d)</span>
+    <div class="controls-row">
+      <label for="color-by">Color by:</label>
+      <select id="color-by"></select>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+    const MAX_NODES = 2000;
+    const NODE_SIZE = 0.42;
+    const DURATION_MS = 1400;
+    const GRID_COLS = 50;
+    const GRID_ROWS = 40;
+    const EASE = t => t * (2 - t);
+
+    const OUTLINE_SCALE = 1.01;
+
+    let scene, camera, renderer, controls;
+    let pointsMesh = null;
+    let pointsMeshOutline = null;
+    let lineSegments = null;
+    let flowRegionsOn = false;
+    let flowRegionsOverlay = null;
+    let nodePositions3D = [];
+    let nodePositions2D = [];
+    let nodeIds = [];
+    let nodesByIndex = [];
+    let isUnfolded = false;
+    let animStart = null;
+    let tsneScale = 0.08;
+    let tsneCenter = new THREE.Vector2(0, 0);
+    let colorBy = 'index';
+    let colorOptionsMeta = [];
+    let optionValues = {};
+    let raycaster = new THREE.Raycaster();
+    let mouse = new THREE.Vector2();
+    let idToNameMapping = {};
+    const ATTR_TO_TABLE = {
+      department_id: 'DEPARTMENT',
+      district_id: 'DISTRICTS',
+      task_type_id: 'TASK_TYPES',
+      task_status_id: 'TASK_STATUSES',
+    };
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0a0f);
+
+      camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 28);
+      camera.lookAt(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+      document.getElementById('canvas-wrap').prepend(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.minDistance = 8;
+      controls.maxDistance = 60;
+      controls.target.set(0, 0, 0);
+
+      const ambient = new THREE.AmbientLight(0x404060, 0.8);
+      scene.add(ambient);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+      dir.position.set(5, 10, 15);
+      scene.add(dir);
+
+      requestAnimationFrame(animate);
+      loadTsneAndBuildScene();
+      window.addEventListener('resize', onResize);
+      const wrap = document.getElementById('canvas-wrap');
+      wrap.addEventListener('mouseenter', () => {
+        isUnfolded = true;
+        animStart = performance.now();
+      });
+      wrap.addEventListener('mouseleave', () => {
+        isUnfolded = false;
+        animStart = performance.now();
+      });
+      const tooltip = document.getElementById('node-tooltip');
+      renderer.domElement.addEventListener('mousemove', (e) => onPointerMove(e, tooltip));
+      renderer.domElement.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+    }
+
+    function getIdName(tableKey, id) {
+      if (id == null || id === '' || id === -1) return null;
+      const table = idToNameMapping[tableKey];
+      if (!table || typeof table !== 'object') return null;
+      const key = String(id);
+      return table[key] != null ? table[key] : null;
+    }
+
+    function formatIdAndName(attrKey, val) {
+      const name = ATTR_TO_TABLE[attrKey] ? getIdName(ATTR_TO_TABLE[attrKey], val) : null;
+      if (name != null) return `${val}  →  ${name}`;
+      return String(val);
+    }
+
+    function isTransitioning() {
+      if (animStart == null) return false;
+      const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - animStart;
+      return elapsed < DURATION_MS;
+    }
+
+    function onPointerMove(event, tooltipEl) {
+      const rayTarget = pointsMeshOutline || pointsMesh;
+      if (!rayTarget || nodeIds.length === 0) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObject(rayTarget);
+      if (hits.length === 0) {
+        tooltipEl.classList.remove('visible');
+        return;
+      }
+      const idx = hits[0].index;
+      const node = nodesByIndex[idx];
+      const optMeta = colorOptionsMeta.find(o => o.id === colorBy);
+      const optVal = optionValues[colorBy];
+      let colorLabel = 'Color by';
+      let colorValue = '—';
+      if (optMeta && optVal && optVal.values && idx < optVal.values.length) {
+        colorLabel = optMeta.label;
+        const v = optVal.values[idx];
+        colorValue = (v != null && v !== '' && !(typeof v === 'number' && isNaN(v))) ? String(v) : '—';
+        const attrKey = optMeta.id.startsWith('attr_') ? optMeta.id.replace('attr_', '') : null;
+        const tableKey = attrKey ? ATTR_TO_TABLE[attrKey] : null;
+        if (tableKey && colorValue !== '—') {
+          const name = getIdName(tableKey, colorValue);
+          if (name) colorValue = `${colorValue}  →  ${name}`;
+        }
+      } else if (colorBy === 'index') {
+        colorLabel = 'Index';
+        colorValue = String(idx);
+      }
+      let lines = [`id: ${nodeIds[idx]}`, `${colorLabel}: ${colorValue}`];
+      const attrs = node && node.attributes ? node.attributes : {};
+      const extra = ['engineer_id', 'task_id', 'task_type_id', 'district_id', 'department_id', 'y'];
+      for (const k of extra) {
+        if (attrs[k] == null || attrs[k] === -1 || attrs[k] === '') continue;
+        const display = k === 'y' ? String(attrs[k]) : formatIdAndName(k, attrs[k]);
+        lines.push(`${k}: ${display}`);
+      }
+      tooltipEl.textContent = lines.join('\n');
+      const dx = 14, dy = 14;
+      const tw = 280, th = 120;
+      let left = event.clientX + dx;
+      let top = event.clientY + dy;
+      if (left + tw > window.innerWidth) left = event.clientX - tw - dx;
+      if (top + th > window.innerHeight) top = event.clientY - th - dy;
+      if (left < 8) left = 8;
+      if (top < 8) top = 8;
+      tooltipEl.style.left = left + 'px';
+      tooltipEl.style.top = top + 'px';
+      tooltipEl.classList.add('visible');
+    }
+
+    async function loadTsneAndBuildScene() {
+      let data;
+      try {
+        const nodesRes = await fetch('tsne_nodes.json');
+        if (!nodesRes.ok) throw new Error(`tsne_nodes.json ${nodesRes.status}`);
+        data = await nodesRes.json();
+        if (!data || typeof data !== 'object') throw new Error('Invalid tsne_nodes.json');
+
+        const mappingRes = await fetch('w6key_name_mapping.json').catch(() => null);
+        if (mappingRes && mappingRes.ok) {
+          try {
+            const raw = await mappingRes.json();
+            if (raw && typeof raw === 'object') {
+              idToNameMapping = raw;
+              if (idToNameMapping._meta) delete idToNameMapping._meta;
+            }
+          } catch (_) {}
+        }
+      } catch (e) {
+        console.error('Load failed:', e);
+        buildFallbackScene();
+        return;
+      }
+
+      const idMap = data.id_map || {};
+      const nodesList = data.nodes || [];
+      if (nodesList.length > 0 && nodesList.length === Object.keys(idMap).length) {
+        nodeIds = nodesList.map(n => String(n.id));
+        nodesByIndex = nodesList;
+      } else {
+        nodeIds = Object.keys(idMap);
+        nodesByIndex = nodeIds.map(id => ({ id: parseInt(id, 10), attributes: {} }));
+      }
+      if (nodeIds.length > MAX_NODES) {
+        nodeIds = nodeIds.slice(0, MAX_NODES);
+        nodesByIndex = nodesByIndex.slice(0, MAX_NODES);
+      }
+      if (nodeIds.length === 0) {
+        console.warn('No nodes in tsne data, using fallback');
+        buildFallbackScene();
+        return;
+      }
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      nodeIds.forEach((id, idx) => {
+        const xy = idMap[id];
+        if (!xy) return;
+        const [x, y] = xy;
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      });
+      tsneCenter.set((minX + maxX) / 2, (minY + maxY) / 2);
+      const range = Math.max(maxX - minX, maxY - minY) || 1;
+      tsneScale = 24 / range;
+
+      nodePositions2D = nodeIds.map(id => {
+        const [x, y] = idMap[id] || [0, 0];
+        return new THREE.Vector3(
+          (x - tsneCenter.x) * tsneScale,
+          (y - tsneCenter.y) * tsneScale,
+          0
+        );
+      });
+
+      buildColorOptions();
+      populateColorSelect();
+      build3DLayout();
+      buildPointsOnly();
+      document.getElementById('color-by').addEventListener('change', (e) => {
+        colorBy = e.target.value;
+        updatePointColors();
+        if (typeof updateColorbar === 'function') updateColorbar();
+        if (flowRegionsOn) buildFlowRegionsOverlay();
+      });
+      const flowRegionsBtn = document.getElementById('flow-regions-btn');
+      if (flowRegionsBtn) {
+        flowRegionsBtn.addEventListener('click', () => {
+          flowRegionsOn = !flowRegionsOn;
+          flowRegionsBtn.classList.toggle('active', flowRegionsOn);
+          if (flowRegionsOn) buildFlowRegionsOverlay();
+          else removeFlowRegionsOverlay();
+        });
+      }
+      updateStateLabel();
+      requestAnimationFrame(animate);
+    }
+
+    function buildColorOptions() {
+      colorOptionsMeta = [];
+      optionValues = {};
+      const nodes = nodesByIndex;
+      const n = nodes.length;
+      if (n === 0) return;
+
+      const attrKeys = ['task_type_id', 'district_id', 'department_id'];
+
+      const yValues = [];
+      let hasY = false;
+      for (let i = 0; i < n; i++) {
+        const attrs = (nodes[i] && nodes[i].attributes) || {};
+        const v = attrs.y;
+        if (v != null) { hasY = true; yValues.push(Number(v)); } else yValues.push(null);
+      }
+      if (hasY) {
+        colorOptionsMeta.push({ id: 'attr_y', label: 'Node · (Completion Time)', type: 'continuous' });
+        optionValues['attr_y'] = { type: 'continuous', values: yValues };
+      }
+
+      for (const key of attrKeys) {
+        const values = [];
+        for (let i = 0; i < n; i++) {
+          const attrs = (nodes[i] && nodes[i].attributes) || {};
+          const v = attrs[key];
+          values.push(v != null && v !== -1 ? parseInt(v, 10) : null);
+        }
+        colorOptionsMeta.push({ id: `attr_${key}`, label: `Node · ${key.replace(/_id$/, '')}`, type: 'categorical' });
+        optionValues[`attr_${key}`] = { type: 'categorical', values };
+      }
+
+      let nodeAttrList = null;
+      for (let i = 0; i < n; i++) {
+        const al = nodes[i].attr_list;
+        if (Array.isArray(al) && al.length > 0) { nodeAttrList = al; break; }
+      }
+      if (nodeAttrList) {
+        for (const attrName of nodeAttrList) {
+          const idx = nodeAttrList.indexOf(attrName);
+          if (idx < 0) continue;
+          const values = [];
+          for (let i = 0; i < n; i++) {
+            const xf = nodes[i].x_features;
+            if (Array.isArray(xf) && idx < xf.length) values.push(Number(xf[idx]));
+            else values.push(null);
+          }
+          const optId = `node_feat_${attrName}`;
+          colorOptionsMeta.push({ id: optId, label: `(node) · ${attrName.replace(/_id$/, '')}`, type: 'continuous' });
+          optionValues[optId] = { type: 'continuous', values };
+        }
+      }
+
+      const neighborSpecs = {};
+      for (let i = 0; i < n; i++) {
+        const neighbors = nodes[i].neighbors || [];
+        for (const nb of neighbors) {
+          const ntype = nb.node_type;
+          const al = nb.attr_list;
+          if (!ntype || !Array.isArray(al)) continue;
+          for (let idx = 0; idx < al.length; idx++) {
+            const key = `${ntype}\t${al[idx]}`;
+            if (neighborSpecs[key] === undefined) neighborSpecs[key] = idx;
+          }
+        }
+      }
+      for (const key of Object.keys(neighborSpecs)) {
+        const [ntype, attrName] = key.split('\t');
+        const attrIdx = neighborSpecs[key];
+        const values = [];
+        for (let i = 0; i < n; i++) {
+          const neighbors = nodes[i].neighbors || [];
+          let val = null;
+          for (const nb of neighbors) {
+            if (nb.node_type !== ntype) continue;
+            const x = nb.x;
+            if (Array.isArray(x) && attrIdx < x.length) { val = Number(x[attrIdx]); break; }
+          }
+          values.push(val);
+        }
+        const optId = `neighbor_${ntype}_${attrName}`;
+        colorOptionsMeta.push({ id: optId, label: `${ntype} · ${attrName.replace(/_id$/, '')}`, type: 'continuous' });
+        optionValues[optId] = { type: 'continuous', values };
+      }
+    }
+
+    function populateColorSelect() {
+      const sel = document.getElementById('color-by');
+      sel.innerHTML = '';
+      for (const opt of colorOptionsMeta) {
+        const o = document.createElement('option');
+        o.value = opt.id;
+        o.textContent = opt.label;
+        sel.appendChild(o);
+      }
+      const preferY = colorOptionsMeta.find(o => o.id === 'attr_y');
+      colorBy = preferY ? preferY.id : (colorOptionsMeta[0] ? colorOptionsMeta[0].id : '');
+      sel.value = colorBy;
+    }
+
+    function hslToRgb(h, s, l) {
+      h = h / 360;
+      let r, g, b;
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+      }
+      return [r, g, b];
+    }
+    function hue2rgb(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    }
+    const GOLDEN_ANGLE = 137.5;
+    function buildCategoricalPalette(n) {
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        const hue = (i * GOLDEN_ANGLE) % 360;
+        const sat = 0.82 + (i % 3) * 0.06;
+        const light = 0.48 + (i % 5) * 0.06;
+        out.push(hslToRgb(hue, sat, light));
+      }
+      return out;
+    }
+    const PALETTE = buildCategoricalPalette(36);
+
+    function highContrastContinuous(t) {
+      const v = Math.max(0, Math.min(1, t));
+      if (v <= 0.25) {
+        const s = v / 0.25;
+        return [0.1 + 0.5 * s, 0.2, 0.9 - 0.5 * s];
+      }
+      if (v <= 0.5) {
+        const s = (v - 0.25) / 0.25;
+        return [0.6, 0.2 + 0.8 * s, 0.4 + 0.5 * (1 - s)];
+      }
+      if (v <= 0.75) {
+        const s = (v - 0.5) / 0.25;
+        return [0.6 + 0.35 * s, 1.0, 0.2 * (1 - s)];
+      }
+      const s = (v - 0.75) / 0.25;
+      return [0.95, 1.0 - 0.8 * s, 0.1 + 0.3 * s];
+    }
+
+    function getColorForNode(i) {
+      if (colorBy === 'index') {
+        const t = i / Math.max(1, nodeIds.length);
+        return [0.3 + 0.5 * t, 0.5 + 0.3 * (1 - t), 0.9];
+      }
+      const opt = optionValues[colorBy];
+      if (!opt || !opt.values || i >= opt.values.length) return [0.4, 0.4, 0.5];
+      const val = opt.values[i];
+      if (val == null || val === '' || (typeof val === 'number' && isNaN(val))) return [0.4, 0.4, 0.5];
+
+      if (opt.type === 'categorical') {
+        const idx = (typeof val === 'number' ? val : parseInt(val, 10) || 0);
+        const p = PALETTE[((idx % PALETTE.length) + PALETTE.length) % PALETTE.length];
+        return p;
+      }
+      const vals = opt.values;
+      let min = Infinity, max = -Infinity;
+      for (let j = 0; j < vals.length; j++) {
+        const v = vals[j];
+        if (v != null && v !== '' && !isNaN(Number(v))) {
+          const num = Number(v);
+          if (num < min) min = num;
+          if (num > max) max = num;
+        }
+      }
+      if (min === Infinity) return [0.4, 0.4, 0.5];
+      const range = max - min || 1;
+      let t = (Number(val) - min) / range;
+      if (colorBy === 'attr_y') t = Math.min(1, t * 11);
+      return highContrastContinuous(t);
+    }
+
+    function updatePointColors() {
+      if (!pointsMesh || !pointsMesh.geometry.attributes.color) return;
+      const colors = pointsMesh.geometry.attributes.color.array;
+      for (let i = 0; i < nodeIds.length; i++) {
+        const c = getColorForNode(i);
+        colors[i * 3] = c[0];
+        colors[i * 3 + 1] = c[1];
+        colors[i * 3 + 2] = c[2];
+      }
+      pointsMesh.geometry.attributes.color.needsUpdate = true;
+    }
+
+    function removeFlowRegionsOverlay() {
+      if (!flowRegionsOverlay) return;
+      scene.remove(flowRegionsOverlay);
+      if (flowRegionsOverlay.geometry) flowRegionsOverlay.geometry.dispose();
+      if (flowRegionsOverlay.material) {
+        const M = flowRegionsOverlay.material;
+        if (M.map) M.map.dispose();
+        M.dispose();
+      }
+      flowRegionsOverlay = null;
+    }
+
+    function buildFlowRegionsOverlay() {
+      removeFlowRegionsOverlay();
+      const opt = optionValues[colorBy];
+      const n = nodeIds.length;
+      if (!opt || !opt.values || n === 0 || nodePositions2D.length !== n) return;
+      const pos2 = nodePositions2D;
+
+      const getBbox = (padding) => {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (let i = 0; i < n; i++) {
+          minX = Math.min(minX, pos2[i].x); maxX = Math.max(maxX, pos2[i].x);
+          minY = Math.min(minY, pos2[i].y); maxY = Math.max(maxY, pos2[i].y);
+        }
+        if (padding) {
+          const rx = (maxX - minX) || 1, ry = (maxY - minY) || 1;
+          minX -= padding * rx; maxX += padding * rx;
+          minY -= padding * ry; maxY += padding * ry;
+        }
+        return { minX, maxX, minY, maxY };
+      };
+
+      if (opt.type === 'continuous') {
+        const vals = opt.values.map(v => (v != null && v !== '' && !isNaN(Number(v))) ? Number(v) : null);
+        let minV = Infinity, maxV = -Infinity;
+        vals.forEach(v => { if (v != null) { minV = Math.min(minV, v); maxV = Math.max(maxV, v); } });
+        const rangeV = (maxV - minV) || 1;
+        const isY = colorBy === 'attr_y';
+        const valueToRgb = (v) => {
+          if (v == null || isNaN(v)) return [0.4, 0.4, 0.5];
+          let t = (v - minV) / rangeV;
+          if (isY) t = Math.min(1, t * 11);
+          return highContrastContinuous(t);
+        };
+        const { minX, maxX, minY, maxY } = getBbox(0);
+        const W = 256, H = 256;
+        const GRID_N = 24;
+        const cellW = (maxX - minX) / GRID_N || 1;
+        const cellH = (maxY - minY) / GRID_N || 1;
+        const grid = Array.from({ length: GRID_N * GRID_N }, () => []);
+        for (let i = 0; i < n; i++) {
+          if (vals[i] == null) continue;
+          const cx = Math.min(GRID_N - 1, Math.max(0, Math.floor((pos2[i].x - minX) / cellW)));
+          const cy = Math.min(GRID_N - 1, Math.max(0, Math.floor((pos2[i].y - minY) / cellH)));
+          grid[cy * GRID_N + cx].push(i);
+        }
+        const K_IDW = 24;
+        const powIDW = 1.2;
+        const candidates = [];
+        const canvas = document.createElement('canvas');
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(W, H);
+        for (let py = 0; py < H; py++) {
+          for (let px = 0; px < W; px++) {
+            const x = minX + (px / Math.max(1, W - 1)) * (maxX - minX);
+            const y = maxY - (py / Math.max(1, H - 1)) * (maxY - minY);
+            const cx = Math.min(GRID_N - 1, Math.max(0, Math.floor((x - minX) / cellW)));
+            const cy = Math.min(GRID_N - 1, Math.max(0, Math.floor((y - minY) / cellH)));
+            candidates.length = 0;
+            for (let dy = -2; dy <= 2; dy++) {
+              for (let dx = -2; dx <= 2; dx++) {
+                const nx = cx + dx, ny = cy + dy;
+                if (nx < 0 || nx >= GRID_N || ny < 0 || ny >= GRID_N) continue;
+                const cell = grid[ny * GRID_N + nx];
+                for (let idx = 0; idx < cell.length; idx++) {
+                  const i = cell[idx];
+                  const d2 = (pos2[i].x - x) ** 2 + (pos2[i].y - y) ** 2;
+                  candidates.push({ i, d2 });
+                }
+              }
+            }
+            let v = null;
+            if (candidates.length > 0) {
+              candidates.sort((a, b) => a.d2 - b.d2);
+              let num = 0, den = 0;
+              for (let k = 0; k < Math.min(K_IDW, candidates.length); k++) {
+                const d = Math.sqrt(candidates[k].d2) || 1e-10;
+                const w = 1 / Math.pow(d, powIDW);
+                num += vals[candidates[k].i] * w;
+                den += w;
+              }
+              v = den > 0 ? num / den : null;
+            }
+            const p = valueToRgb(v);
+            const i4 = (py * W + px) * 4;
+            imgData.data[i4] = Math.round(p[0] * 255);
+            imgData.data[i4 + 1] = Math.round(p[1] * 255);
+            imgData.data[i4 + 2] = Math.round(p[2] * 255);
+            imgData.data[i4 + 3] = 255;
+          }
+        }
+        const blurRadius = 2;
+        const out = new Uint8ClampedArray(imgData.data.length);
+        for (let py = 0; py < H; py++) {
+          for (let px = 0; px < W; px++) {
+            let r = 0, g = 0, b = 0, a = 0, cnt = 0;
+            for (let by = -blurRadius; by <= blurRadius; by++) {
+              for (let bx = -blurRadius; bx <= blurRadius; bx++) {
+                const qy = Math.max(0, Math.min(H - 1, py + by));
+                const qx = Math.max(0, Math.min(W - 1, px + bx));
+                const i4 = (qy * W + qx) * 4;
+                r += imgData.data[i4]; g += imgData.data[i4 + 1]; b += imgData.data[i4 + 2]; a += imgData.data[i4 + 3];
+                cnt++;
+              }
+            }
+            const i4 = (py * W + px) * 4;
+            out[i4] = r / cnt; out[i4 + 1] = g / cnt; out[i4 + 2] = b / cnt; out[i4 + 3] = a / cnt;
+          }
+        }
+        imgData.data.set(out);
+        ctx.putImageData(imgData, 0, 0);
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.needsUpdate = true;
+        const w = Math.max(0.01, maxX - minX), h = Math.max(0.01, maxY - minY);
+        const geo = new THREE.PlaneGeometry(w, h);
+        const mat = new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: true,
+          opacity: 0.6,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
+        flowRegionsOverlay = new THREE.Mesh(geo, mat);
+        flowRegionsOverlay.position.set((minX + maxX) / 2, (minY + maxY) / 2, -0.1);
+        scene.add(flowRegionsOverlay);
+        return;
+      }
+
+      if (opt.type === 'categorical') {
+        const { minX, maxX, minY, maxY } = getBbox(0);
+        const W = 128, H = 128;
+        const K_VOTE = 11;
+        const vals = opt.values;
+        const GRID_N = 24;
+        const cellW = (maxX - minX) / GRID_N || 1;
+        const cellH = (maxY - minY) / GRID_N || 1;
+        const grid = Array.from({ length: GRID_N * GRID_N }, () => []);
+        for (let i = 0; i < n; i++) {
+          const cx = Math.min(GRID_N - 1, Math.max(0, Math.floor((pos2[i].x - minX) / cellW)));
+          const cy = Math.min(GRID_N - 1, Math.max(0, Math.floor((pos2[i].y - minY) / cellH)));
+          grid[cy * GRID_N + cx].push(i);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(W, H);
+        const candidates = [];
+        for (let py = 0; py < H; py++) {
+          for (let px = 0; px < W; px++) {
+            const x = minX + (px / Math.max(1, W - 1)) * (maxX - minX);
+            const y = maxY - (py / Math.max(1, H - 1)) * (maxY - minY);
+            const cx = Math.min(GRID_N - 1, Math.max(0, Math.floor((x - minX) / cellW)));
+            const cy = Math.min(GRID_N - 1, Math.max(0, Math.floor((y - minY) / cellH)));
+            candidates.length = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const nx = cx + dx, ny = cy + dy;
+                if (nx < 0 || nx >= GRID_N || ny < 0 || ny >= GRID_N) continue;
+                const cell = grid[ny * GRID_N + nx];
+                for (let idx = 0; idx < cell.length; idx++) {
+                  const i = cell[idx];
+                  const d2 = (pos2[i].x - x) ** 2 + (pos2[i].y - y) ** 2;
+                  candidates.push({ i, d2 });
+                }
+              }
+            }
+            if (candidates.length === 0) {
+              const i4 = (py * W + px) * 4;
+              imgData.data[i4] = 100; imgData.data[i4 + 1] = 100; imgData.data[i4 + 2] = 127; imgData.data[i4 + 3] = 255;
+              continue;
+            }
+            candidates.sort((a, b) => a.d2 - b.d2);
+            const votes = {};
+            for (let k = 0; k < Math.min(K_VOTE, candidates.length); k++) {
+              const val = vals[candidates[k].i];
+              const key = val != null && val !== '' ? String(val) : '__null';
+              votes[key] = (votes[key] || 0) + 1;
+            }
+            let bestKey = '__null';
+            let bestCount = 0;
+            for (const k of Object.keys(votes)) {
+              if (votes[k] > bestCount) { bestCount = votes[k]; bestKey = k; }
+            }
+            const idx = bestKey === '__null' ? 0 : (parseInt(bestKey, 10) || 0);
+            const p = PALETTE[((idx % PALETTE.length) + PALETTE.length) % PALETTE.length];
+            const i4 = (py * W + px) * 4;
+            imgData.data[i4] = Math.round(p[0] * 255);
+            imgData.data[i4 + 1] = Math.round(p[1] * 255);
+            imgData.data[i4 + 2] = Math.round(p[2] * 255);
+            imgData.data[i4 + 3] = 255;
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.needsUpdate = true;
+        const w = Math.max(0.01, maxX - minX), h = Math.max(0.01, maxY - minY);
+        const geo = new THREE.PlaneGeometry(w, h);
+        const mat = new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: true,
+          opacity: 0.55,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
+        flowRegionsOverlay = new THREE.Mesh(geo, mat);
+        flowRegionsOverlay.position.set((minX + maxX) / 2, (minY + maxY) / 2, -0.1);
+        scene.add(flowRegionsOverlay);
+      }
+    }
+
+    function build3DLayout() {
+      const n = nodeIds.length;
+      const cols = Math.min(GRID_COLS, n);
+      const rows = Math.ceil(n / cols);
+      const spacing = 0.42;
+      const ox = (cols - 1) * spacing * 0.5;
+      const oy = (rows - 1) * spacing * 0.5;
+
+      nodePositions3D = [];
+      for (let i = 0; i < n; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        nodePositions3D.push(new THREE.Vector3(
+          col * spacing - ox,
+          row * spacing - oy,
+          0
+        ));
+      }
+    }
+
+    function makeCirclePointTexture(size) {
+      const c = document.createElement('canvas');
+      c.width = size;
+      c.height = size;
+      const ctx = c.getContext('2d');
+      const r = size / 2;
+      const g = ctx.createRadialGradient(r, r, 0, r, r, r);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.9, 'rgba(255,255,255,1)');
+      g.addColorStop(0.98, 'rgba(255,255,255,0.3)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(r, r, r, 0, Math.PI * 2);
+      ctx.fill();
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      return tex;
+    }
+
+    const circlePointTexture = makeCirclePointTexture(64);
+
+    function getCurrentLerpT() {
+      if (animStart == null) return isUnfolded ? 1 : 0;
+      const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - animStart;
+      const progress = Math.min(1, elapsed / DURATION_MS);
+      return isUnfolded ? EASE(progress) : EASE(1 - progress);
+    }
+
+    function buildPointsOnly(positionsOverride) {
+      const n = nodeIds.length;
+      const positions = new Float32Array(n * 3);
+      const colors = new Float32Array(n * 3);
+      const t = positionsOverride ? null : getCurrentLerpT();
+      for (let i = 0; i < n; i++) {
+        if (positionsOverride) {
+          positions[i * 3] = positionsOverride[i * 3];
+          positions[i * 3 + 1] = positionsOverride[i * 3 + 1];
+          positions[i * 3 + 2] = positionsOverride[i * 3 + 2];
+        } else {
+          const a = nodePositions3D[i];
+          const b = nodePositions2D[i];
+          const tt = t ?? 0;
+          positions[i * 3] = a.x + (b.x - a.x) * tt;
+          positions[i * 3 + 1] = a.y + (b.y - a.y) * tt;
+          positions[i * 3 + 2] = a.z + (b.z - a.z) * tt;
+        }
+        const c = getColorForNode(i);
+        colors[i * 3] = c[0];
+        colors[i * 3 + 1] = c[1];
+        colors[i * 3 + 2] = c[2];
+      }
+
+      if (pointsMeshOutline) scene.remove(pointsMeshOutline);
+      const outlineGeo = new THREE.BufferGeometry();
+      outlineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      const outlineMat = new THREE.PointsMaterial({
+        size: NODE_SIZE * OUTLINE_SCALE,
+        color: 0xf5f7fa,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.82,
+        depthWrite: false,
+        map: circlePointTexture,
+        alphaMap: circlePointTexture,
+      });
+      pointsMeshOutline = new THREE.Points(outlineGeo, outlineMat);
+      scene.add(pointsMeshOutline);
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const pointsMat = new THREE.PointsMaterial({
+        size: NODE_SIZE,
+        vertexColors: true,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.78,
+        depthWrite: false,
+        map: circlePointTexture,
+        alphaMap: circlePointTexture,
+      });
+      if (pointsMesh) scene.remove(pointsMesh);
+      pointsMesh = new THREE.Points(geometry, pointsMat);
+      scene.add(pointsMesh);
+
+      if (lineSegments) scene.remove(lineSegments);
+      lineSegments = null;
+    }
+
+    function updatePositions(t) {
+      const n = nodeIds.length;
+      const setPos = (attr, i, x, y, z) => {
+        attr.array[i * 3] = x;
+        attr.array[i * 3 + 1] = y;
+        attr.array[i * 3 + 2] = z;
+      };
+      const lerp = (i) => {
+        const a = nodePositions3D[i];
+        const b = nodePositions2D[i];
+        return {
+          x: a.x + (b.x - a.x) * t,
+          y: a.y + (b.y - a.y) * t,
+          z: a.z + (b.z - a.z) * t,
+        };
+      };
+      if (pointsMeshOutline && pointsMeshOutline.geometry.attributes.position) {
+        const outlineAttr = pointsMeshOutline.geometry.attributes.position;
+        for (let i = 0; i < n; i++) {
+          const p = lerp(i);
+          setPos(outlineAttr, i, p.x, p.y, p.z);
+        }
+        outlineAttr.needsUpdate = true;
+      }
+      if (pointsMesh && pointsMesh.geometry.attributes.position) {
+        const posAttr = pointsMesh.geometry.attributes.position;
+        for (let i = 0; i < n; i++) {
+          const p = lerp(i);
+          setPos(posAttr, i, p.x, p.y, p.z);
+        }
+        posAttr.needsUpdate = true;
+      }
+    }
+
+    function updateStateLabel() {
+      const el = document.getElementById('state-label');
+      if (!el) return;
+      el.textContent = isUnfolded ? 'T-SNE 2D (assignments)' : 'Assignments · Last hidden (128-d)';
+    }
+
+    function buildFallbackScene() {
+      const n = 200;
+      nodeIds = Array.from({ length: n }, (_, i) => String(i));
+      nodesByIndex = nodeIds.map(id => ({ id: parseInt(id, 10), attributes: {} }));
+      buildColorOptions();
+      populateColorSelect();
+      const cols = Math.min(GRID_COLS, n);
+      const rows = Math.ceil(n / cols);
+      const spacing = 0.42;
+      const ox = (cols - 1) * spacing * 0.5;
+      const oy = (rows - 1) * spacing * 0.5;
+      for (let i = 0; i < n; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        nodePositions3D.push(new THREE.Vector3(col * spacing - ox, row * spacing - oy, 0));
+        nodePositions2D.push(new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, 0));
+      }
+      buildPointsOnly();
+      updateStateLabel();
+      requestAnimationFrame(animate);
+    }
+
+    function animate(time) {
+      requestAnimationFrame(animate);
+      if (animStart != null && nodePositions3D.length) {
+        const elapsed = time - animStart;
+        const progress = Math.min(1, elapsed / DURATION_MS);
+        const t = isUnfolded ? EASE(progress) : EASE(1 - progress);
+        updatePositions(t);
+
+        const camT = isUnfolded ? EASE(progress) : EASE(1 - progress);
+        camera.position.lerpVectors(
+          new THREE.Vector3(0, 0, 28),
+          new THREE.Vector3(0, 0, 35),
+          camT
+        );
+        controls.target.set(0, 0, 0);
+        camera.lookAt(0, 0, 0);
+        if (progress >= 1) animStart = null;
+        updateStateLabel();
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    init();
+  </script>
+</body>
+</html>
