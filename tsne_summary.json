@@ -1,0 +1,19 @@
+{
+  "ckpt": "/Users/gongzhenghao/Desktop/repo/research/scheduling_world_model/checkpoints/kfold/sage/fold00/kfold-sage-fold00_fold00_epoch002.pt",
+  "target": "assignments",
+  "split": "val",
+  "n_samples": 2000,
+  "tsne": {
+    "n_components": 2,
+    "perplexity": 5.0,
+    "max_iter": 500,
+    "pca_dims": 10
+  },
+  "label_coverage": {
+    "engineer": 8,
+    "task": 2000,
+    "task_type": 2000,
+    "district": 2000,
+    "department": 2000
+  }
+}
