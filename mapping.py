@@ -65,12 +65,24 @@ def main() -> None:
     if not csv_dir.is_dir():
         raise FileNotFoundError(f"Not a directory: {csv_dir}")
 
-    result: Dict[str, Any] = {
-        "_meta": {
+    out_path = Path(args.out).resolve()
+    result: Dict[str, Any] = {}
+    if out_path.exists():
+        try:
+            loaded = json.loads(out_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                result = loaded
+        except Exception:
+            result = {}
+
+    meta = result.get("_meta") if isinstance(result.get("_meta"), dict) else {}
+    meta.update(
+        {
             "description": "W6KEY -> name per table for id-to-name transform",
             "source_dir": str(csv_dir),
         }
-    }
+    )
+    result["_meta"] = meta
 
     for csv_path in sorted(csv_dir.glob(args.pattern)):
         if not csv_path.is_file():
@@ -81,7 +93,6 @@ def main() -> None:
             result[table] = mapping
             print(f"[{table}] {csv_path.name} -> {len(mapping)} entries")
 
-    out_path = Path(args.out).resolve()
     out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Wrote {out_path}")
 
