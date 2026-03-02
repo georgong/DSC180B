@@ -178,6 +178,7 @@
     const ATTR_TO_TABLE = {
       department_id: 'DEPARTMENT',
       district_id: 'DISTRICTS',
+      region_id: 'REGIONS',
       task_type_id: 'TASK_TYPES',
       task_status_id: 'TASK_STATUSES',
     };
@@ -239,6 +240,31 @@
       const name = ATTR_TO_TABLE[attrKey] ? getIdName(ATTR_TO_TABLE[attrKey], val) : null;
       if (name != null) return `${val}  →  ${name}`;
       return String(val);
+    }
+
+    function humanizeFeatureLabel(raw) {
+      const base = String(raw ?? '').replace(/_id$/, '');
+      const m = base.match(/^([A-Za-z]+)_([A-Za-z_]+)_(\d+)$/);
+      if (!m) return base;
+      const typeLabel = m[2];
+      const kindKey = typeLabel.toUpperCase().replace(/[^A-Z]/g, '');
+      const id = m[3];
+      const table = ({
+        TASKTYPE: 'TASK_TYPES',
+        TASKTYPES: 'TASK_TYPES',
+        TASKSTATUS: 'TASK_STATUSES',
+        TASKSTATUSES: 'TASK_STATUSES',
+        DISTRICT: 'DISTRICTS',
+        DISTRICTS: 'DISTRICTS',
+        DEPARTMENT: 'DEPARTMENT',
+        DEPARTMENTS: 'DEPARTMENT',
+        REGION: 'REGIONS',
+        REGIONS: 'REGIONS',
+      })[kindKey];
+      if (!table) return null;
+      const name = getIdName(table, id);
+      if (name == null || name === '') return null;
+      return `${name} (${typeLabel})`;
     }
 
     function isTransitioning() {
@@ -437,8 +463,11 @@
       }
       if (nodeAttrList) {
         for (const attrName of nodeAttrList) {
+          if (attrName.startsWith('assign_CITY') || attrName.startsWith('task_Duration')) continue;
           const idx = nodeAttrList.indexOf(attrName);
           if (idx < 0) continue;
+          const label = humanizeFeatureLabel(attrName);
+          if (label === null) continue;
           const values = [];
           for (let i = 0; i < n; i++) {
             const xf = nodes[i].x_features;
@@ -446,7 +475,7 @@
             else values.push(null);
           }
           const optId = `node_feat_${attrName}`;
-          colorOptionsMeta.push({ id: optId, label: `(node) · ${attrName.replace(/_id$/, '')}`, type: 'continuous' });
+          colorOptionsMeta.push({ id: optId, label: `(node) · ${label}`, type: 'continuous' });
           optionValues[optId] = { type: 'continuous', values };
         }
       }
@@ -466,6 +495,9 @@
       }
       for (const key of Object.keys(neighborSpecs)) {
         const [ntype, attrName] = key.split('\t');
+        if (attrName.startsWith('assign_CITY') || attrName.startsWith('task_DURATION')) continue;
+        const label = humanizeFeatureLabel(attrName);
+        if (label === null) continue;
         const attrIdx = neighborSpecs[key];
         const values = [];
         for (let i = 0; i < n; i++) {
@@ -479,7 +511,7 @@
           values.push(val);
         }
         const optId = `neighbor_${ntype}_${attrName}`;
-        colorOptionsMeta.push({ id: optId, label: `${ntype} · ${attrName.replace(/_id$/, '')}`, type: 'continuous' });
+        colorOptionsMeta.push({ id: optId, label: `${ntype} · ${label}`, type: 'continuous' });
         optionValues[optId] = { type: 'continuous', values };
       }
     }
