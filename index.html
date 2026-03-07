@@ -39,6 +39,7 @@
                 <li><a href="#methods">Methods</a></li>
                 <li><a href="#results">Results</a></li>
                 <li><a href="#application">Application</a></li>
+                <li><a href="#demo">Demo</a></li>
             </ul>
         </div>
     </nav>
@@ -189,35 +190,59 @@
 
     <section id="application" class="section bg-dark">
         <div class="section-header text-white">
-            <span class="section-tag">Deployment</span>
+            <span class="section-tag">Application</span>
             <h2>Interactive Dashboard</h2>
-            <p>From predictive modeling to practical decision support.</p>
+            <p>From predictive modeling to practical insights and operational visibility</p>
         </div>
         
         <div class="app-showcase">
-            <div class="app-desc">
-                <h3>Decision Support Simulator</h3>
-                <p>An independent evaluation layer that operates alongside existing tools. Planners can:
+            <div class="app-desc"> 
+                <h3>Graph-Based Scheduling Intelligence</h3>
+                <p>An web application that provides insights in task completion time and operational risk. Schedulers can:
                     <br>
                     <br>
                 </p>
                 <ul>
-                    <li>Upload candidate schedules.</li>
-                    <li>View system-level risk scores (Delay, Congestion).</li>
-                    <li>Identify specific bottleneck districts.</li>
+                    <li>Upload a set of schedules</li>
+                    <li>Construct a relational graph and run prediction<li>
+                    <li>Analyze system-level metrics (workload, task hours)</li>
+                    <li>Visualize relationships across the scheduling network</li>
                 </ul>
-                <button class="btn-outline">View Demo Video (Coming Soon)</button>
             </div>
             <div class="app-visual">
                 <div class="monitor">
                     <div class="screen">
-                        <span>[ Dashboard Interface Screenshot to be supplemented ]</span>
+                        <!-- Image slideshow: update filenames in the JS arrays below if different -->
+                        <button class="slideshow-btn left" aria-label="Previous" id="slidePrev">&#9664;</button>
+                        <img src="" alt="Dashboard slide" class="slide-img" id="slideImg">
+                        <button class="slideshow-btn right" aria-label="Next" id="slideNext">&#9654;</button>
                     </div>
                 </div>
+                <div class="slide-caption" id="slideCaption">Caption</div>
             </div>
         </div>
     </section>
 
+    <section id="demo" class="section bg-light">
+        <div class="section-header">
+            <span class="section-tag">Video Walkthrough</span>
+            <h2>Application Demo</h2>
+            <p>A demonstration of our scheduling intelligence platform.</p>
+        </div>
+
+        <div class="demo-container">
+            <div class="video-wrapper">
+                <iframe
+                src="https://www.youtube-nocookie.com/embed/sKoo88jWcME?rel=0"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </section>
     <footer>
         <div class="footer-content">
             <p>&copy; 2026 DSC 180 Capstone Team. Halıcıoğlu Data Science Institute, UCSD.</p>
