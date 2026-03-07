@@ -311,7 +311,7 @@ body {
     border-radius: 12px;
     position: relative;
     flex: 1;
-    min-width: 300px;
+    min-width: min(300px, 100%);
     max-width: 380px;
     cursor: default;
     border: 1px solid var(--border);
@@ -467,12 +467,12 @@ body {
 .text-white .section-tag { color: #38bdf8 !important; }
 
 .app-showcase {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 4rem;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    align-items: stretch;
 }
 
 .app-desc { color: #cbd5e1; }
@@ -554,7 +554,7 @@ footer {
 /* Slideshow styles (small, self-contained) */
 .app-visual { display: flex; flex-direction: column; width: 100%; }
 .app-visual .monitor { display:flex; align-items:center; justify-content:center; width: 100%; }
-.screen { position:relative; width:100%; height:360px; max-width:900px; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:6px; }
+.screen { position:relative; width:100%; height:420px; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:6px; }
 .slide-img { width:100%; height:100%; object-fit:contain; display:block; }
 .slideshow-btn {
     position:absolute;
@@ -748,5 +748,202 @@ footer {
     /* 如果手机屏幕实在太小，可以考虑隐藏 "Model" 这个词，给 Logo 留足空间 */
     .model-text {
         display: none;
+    }
+}
+
+/* ============================================
+   MOBILE RESPONSIVE — all breakpoints
+   ============================================ */
+
+/* --- Tablet & below (≤ 900px) --- */
+@media (max-width: 900px) {
+    /* Hero: stack text above visual */
+    .hero-opt2 {
+        padding: 8rem 1.5rem 4rem;
+        min-height: auto;
+    }
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+    .hero-visual {
+        height: 300px;
+    }
+    .hero-title-left {
+        font-size: 3rem;
+        letter-spacing: -1px;
+    }
+    .hero-subtitle-left {
+        font-size: 1.4rem;
+    }
+    .hero-desc {
+        max-width: 100%;
+        font-size: 1rem;
+    }
+
+    /* Sections: tighter vertical padding */
+    .section {
+        padding: 4rem 1.5rem;
+    }
+    .section-header {
+        margin-bottom: 2.5rem;
+    }
+    .section-header h2 {
+        font-size: 2rem;
+    }
+
+    /* Results */
+    .result-placeholder {
+        padding: 1.5rem;
+    }
+    .embed-wrap {
+        min-height: 360px;
+    }
+    .embed-viz {
+        min-height: 360px;
+        height: 60vw;
+    }
+
+    /* Application showcase already column on all sizes */
+    .app-showcase {
+        max-width: 100%;
+        padding: 0 0.5rem;
+    }
+    .screen {
+        height: 300px;
+    }
+
+    /* Demo video container */
+    .demo-container {
+        padding: 0.75rem;
+    }
+}
+
+/* --- Phone (≤ 480px) --- */
+@media (max-width: 480px) {
+    /* Nav */
+    .nav-container {
+        padding: 0.85rem 1rem;
+    }
+
+    /* Hero */
+    .hero-opt2 {
+        padding: 7rem 1rem 3rem;
+    }
+    .hero-title-left {
+        font-size: 2.4rem;
+        letter-spacing: -0.5px;
+    }
+    .hero-subtitle-left {
+        font-size: 1.2rem;
+        margin-bottom: 1.2rem;
+    }
+    .hero-desc {
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+    .hero-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    .btn-tech {
+        width: 100%;
+        text-align: center;
+        padding: 0.9rem 1.5rem;
+    }
+    .tech-team-info {
+        font-size: 0.85rem;
+    }
+    .hero-visual {
+        height: 220px;
+    }
+
+    /* Sections */
+    .section {
+        padding: 3rem 1rem;
+    }
+    .section-header h2 {
+        font-size: 1.7rem;
+        letter-spacing: -0.5px;
+    }
+    .section-header p {
+        font-size: 0.9rem;
+    }
+
+    /* Problem cards — full width stacked */
+    .cards-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    .card {
+        min-width: unset;
+        max-width: 100%;
+    }
+    .card-content {
+        padding: 1.5rem;
+    }
+
+    /* Methods grid — single column */
+    .methods-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .method-box {
+        padding: 1.25rem;
+    }
+
+    /* Results */
+    .result-placeholder {
+        padding: 1rem;
+    }
+    .fake-chart {
+        height: 140px;
+        font-size: 0.85rem;
+    }
+    .embed-wrap {
+        min-height: 280px;
+    }
+    .embed-viz {
+        min-height: 280px;
+        height: 70vw;
+    }
+
+    /* Application */
+    .app-desc h3 {
+        font-size: 1.2rem;
+    }
+    .app-desc p,
+    .app-desc li {
+        font-size: 0.9rem;
+    }
+    .btn-outline {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    .monitor {
+        padding: 0.6rem;
+        border-radius: 8px;
+    }
+    .screen {
+        height: 220px;
+    }
+    .slideshow-btn {
+        /* always visible on touch devices */
+        opacity: 1;
+    }
+
+    /* Demo */
+    .demo-container {
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    /* Footer */
+    footer {
+        padding: 2rem 1rem;
+        font-size: 0.82rem;
     }
 }
