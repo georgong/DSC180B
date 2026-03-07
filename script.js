@@ -34,3 +34,51 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+
+// Simple slideshow logic. Update filenames/captions as needed.
+(function(){
+    const images = [
+        'assets/data upload.png',
+        'assets/dashboard.png',
+        'assets/risk table.png',
+        'assets/plots.png',
+        'assets/graph.png',
+    ];
+    const captions = [
+        'Data Upload',
+        'Dashboard Overview',
+        'Prediction Table',
+        'Charts',
+        'Graph Visualization',
+    ];
+
+    // If your asset filenames differ, replace strings above with actual filenames.
+    let idx = 0;
+    const imgEl = document.getElementById('slideImg');
+    const capEl = document.getElementById('slideCaption');
+    const prevBtn = document.getElementById('slidePrev');
+    const nextBtn = document.getElementById('slideNext');
+
+    function show(i){
+        idx = (i + images.length) % images.length;
+        imgEl.src = images[idx];
+        imgEl.alt = captions[idx];
+        capEl.textContent = captions[idx];
+    }
+
+    prevBtn.addEventListener('click', () => show(idx - 1));
+    nextBtn.addEventListener('click', () => show(idx + 1));
+
+    // keyboard support
+    document.addEventListener('keydown', (e)=> {
+        if (e.key === 'ArrowLeft') show(idx - 1);
+        if (e.key === 'ArrowRight') show(idx + 1);
+    });
+
+    // preload images
+    images.forEach(src => { const p=new Image(); p.src=src; });
+
+    // initialize
+    show(0);
+})();
