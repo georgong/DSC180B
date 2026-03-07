@@ -510,6 +510,37 @@ body {
     border: 2px dashed #334155;
 }
 
+/* --- Demo Section --- */
+.demo-container {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05);
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #0f172a;
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
 /* --- Footer --- */
 footer {
     text-align: center;
@@ -520,13 +551,49 @@ footer {
 }
 .footer-note { margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.7; }
 
-/* --- 响应式 --- */
-@media (max-width: 900px) {
-    .hero-grid, .app-showcase { grid-template-columns: 1fr; }
-    .hero-opt2 { padding-top: 8rem; text-align: center; }
-    .hero-title-left { font-size: 3rem; }
-    .hero-visual { height: 300px; margin-top: 2rem; }
-    .tech-team-info { border-left: none; padding-left: 0; margin-top: 2rem; }
+/* Slideshow styles (small, self-contained) */
+.app-visual { display: flex; flex-direction: column; width: 100%; }
+.app-visual .monitor { display:flex; align-items:center; justify-content:center; width: 100%; }
+.screen { position:relative; width:100%; height:360px; max-width:900px; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:6px; }
+.slide-img { width:100%; height:100%; object-fit:contain; display:block; }
+.slideshow-btn {
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    background:rgba(15, 23, 42, 0.85); /* Changed to dark background matching app UI */
+    color:#f8fafc;
+    border:1px solid #334155;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease, transform 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+.screen:hover .slideshow-btn { opacity: 1; }
+.slideshow-btn:hover { background:rgba(30, 41, 59, 0.95); } /* Slightly lighter dark shade on hover */
+.slideshow-btn:active { transform:translateY(-50%) scale(.95); }
+.slideshow-btn.left { left:12px; }
+.slideshow-btn.right { right:12px; }
+.slide-caption {
+    margin-top: 1rem;
+    color: #94a3b8;
+    font-size: 0.95rem;
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+/* small responsive adjustments */
+@media (max-width:640px){
+    .screen { height:220px; }
+    .slideshow-btn { width:34px; height:34px; font-size:18px; opacity: 1; /* always show on mobile */ }
+    .slide-caption { font-size:0.85rem; margin-top: 0.8rem; }
 }
 
 .logo-opt1 {
