@@ -33,4 +33,30 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     }
+
+    // --- 3. Methods 网格 hover 展开图片（来自 /img） ---
+    const methodsWrap = document.getElementById('methods-hover-img-wrap');
+    const methodsImg = document.getElementById('methods-hover-img');
+    const methodBoxes = document.querySelectorAll('.method-box[data-method-img]');
+    if (methodsWrap && methodsImg && methodBoxes.length) {
+        methodBoxes.forEach(box => {
+            box.addEventListener('mouseenter', () => {
+                const src = box.getAttribute('data-method-img') || '';
+                if (src) {
+                    methodsImg.src = src;
+                    methodsImg.alt = box.querySelector('h3')?.textContent || 'Method';
+                    methodsWrap.classList.add('visible');
+                    methodsWrap.setAttribute('aria-hidden', 'false');
+                }
+            });
+            box.addEventListener('mouseleave', () => {
+                methodsWrap.classList.remove('visible');
+                methodsWrap.setAttribute('aria-hidden', 'true');
+            });
+        });
+        methodsWrap.addEventListener('mouseleave', () => {
+            methodsWrap.classList.remove('visible');
+            methodsWrap.setAttribute('aria-hidden', 'true');
+        });
+    }
 });
