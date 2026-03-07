@@ -387,6 +387,27 @@ body {
 .method-box h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary); }
 .method-box p { font-size: 0.9rem; color: var(--text-light); }
 
+.methods-hover-img-wrap {
+    max-width: 900px;
+    margin: 2rem auto 0;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+}
+.methods-hover-img-wrap.visible {
+    max-height: 420px;
+    opacity: 1;
+}
+.methods-hover-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    object-fit: contain;
+}
+
 /* --- Results --- */
 .results-container {
     max-width: 1000px;
