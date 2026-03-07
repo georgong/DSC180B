@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>San Diego → Graph → Logo | D3 动画</title>
-  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <title></title>
+  <script src="assets/d3.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -68,12 +68,23 @@
       stroke-width: 1;
       transition: stroke-width 0.8s;
     }
+    .logo-wow-text {
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -0.5px;
+      font-family: 'Manrope', 'SF Pro Text', -apple-system, sans-serif;
+    }
+    .logo-model-text {
+      font-weight: 400;
+      font-size: 1.3rem;
+      font-family: 'Manrope', 'SF Pro Text', -apple-system, sans-serif;
+    }
   </style>
 </head>
 <body>
   <div id="container">
     <div class="loading" id="loading">loading...</div>
-    <div class="phase-label" id="phase-label">San Diego</div>
+    <div class="phase-label" id="phase-label">Entities</div>
     <svg id="viz"></svg>
   </div>
 
@@ -418,15 +429,27 @@
             .attr('y2', d => linkEndpoints(d).y2);
 
           gLogoLabel.selectAll('*').remove();
-          gLogoLabel.append('text')
+          const labelY = cy + r / 2 + 52;
+          gLogoLabel.append('defs')
+            .append('linearGradient').attr('id', 'logoWowGrad')
+            .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
+            .selectAll('stop')
+            .data([{ offset: '0%', color: '#0284c7' }, { offset: '100%', color: '#6366f1' }])
+            .join('stop').attr('offset', d => d.offset).attr('stop-color', d => d.color);
+          const logoText = gLogoLabel.append('text')
             .attr('x', cx)
-            .attr('y', cy + r / 2 + 52)
+            .attr('y', labelY)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#334155')
-            .attr('font-size', '22px')
-            .attr('font-weight', '600')
-            .attr('letter-spacing', '0.06em')
-            .text('WOW Model');
+            .attr('class', 'logo-label-text');
+          logoText.append('tspan')
+            .attr('class', 'logo-wow-text')
+            .attr('fill', 'url(#logoWowGrad)')
+            .text('WOW');
+          logoText.append('tspan')
+            .attr('class', 'logo-model-text')
+            .attr('fill', '#64748b')
+            .attr('dx', '-1')
+            .text(' Model');
           gLogoLabel.transition().duration(600).attr('opacity', 1);
         }, FADE_DURATION);
       }
@@ -457,7 +480,7 @@
         drawNodes(nodes);
 
         const schedule = [
-          [0, () => setPhase('San Diego')],
+          [0, () => setPhase('Entities')],
           [200, () => {
             setPhase('Entities');
             drawNodes(nodes, true);
@@ -468,7 +491,7 @@
             drawLinks(links, nodes);
           }],
           [2700, () => {
-            setPhase('Task → Assignment → Engineers');
+            setPhase('Graph Representation');
             showLogo();
           }]
         ];
@@ -477,7 +500,7 @@
       }
 
       // Load San Diego GeoJSON (neighborhoods or county)
-      const GEO_URL = 'https://raw.githubusercontent.com/blackmad/neighborhoods/master/san-diego.geojson';
+      const GEO_URL = 'assets/san-diego.geojson';
       const FALLBACK_GEO = {
         type: 'FeatureCollection',
         features: [{
