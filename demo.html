@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #0284c7;
+      --accent-light: #38bdf8;
+      --text-main: #334155;
+      --text-light: #64748b;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+      --card-bg: rgba(255, 255, 255, 0.72);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: var(--text-main);
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      position: relative;
+    }
+
+    /* soft background glow */
+    body::before,
+    body::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.35;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 320px;
+      height: 320px;
+      background: #bae6fd;
+      top: -80px;
+      left: -60px;
+    }
+
+    body::after {
+      width: 380px;
+      height: 380px;
+      background: #c7d2fe;
+      bottom: -120px;
+      right: -80px;
+    }
+
+    .intro-card {
+      position: relative;
+      z-index: 1;
+      width: min(920px, calc(100% - 48px));
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 28px;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.10);
+      padding: 56px 56px 44px;
+      text-align: center;
+      animation: fadeUp 0.9s ease-out both;
+    }
+
+    .tag-line {
+      display: inline-block;
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    .project-title {
+      font-size: clamp(2.2rem, 5vw, 4.3rem);
+      line-height: 1.03;
+      font-weight: 800;
+      letter-spacing: -1.8px;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .project-subtitle {
+      font-size: clamp(1.05rem, 2.1vw, 1.6rem);
+      font-weight: 400;
+      color: var(--text-light);
+      margin-bottom: 28px;
+    }
+
+    .demo-pill {
+      display: inline-block;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 34px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: 760px;
+      margin: 0 auto 34px;
+    }
+
+    .meta-block {
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid var(--border);
+    }
+
+    .meta-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .meta-text {
+      font-size: 1rem;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    .team-names {
+      font-weight: 600;
+    }
+
+    .footer-note {
+      font-size: 0.92rem;
+      color: var(--text-light);
+    }
+
+    .footer-note strong {
+      color: var(--primary);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .intro-card {
+        padding: 38px 24px 32px;
+        border-radius: 22px;
+      }
+
+      .project-subtitle {
+        margin-bottom: 22px;
+      }
+
+      .demo-pill {
+        margin-bottom: 24px;
+      }
+
+      .meta-block {
+        padding: 16px;
+      }
+
+      .meta-text {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="intro-card">
+    <div class="tag-line">2026 UCSD Halıcıoğlu Data Science Institute Capstone Project</div>
+
+    <h1 class="project-title">Application demo</h1>
+    <p class="project-subtitle">A World Model for Work Order Scheduling</p>
+
+    <section class="meta-grid">
+      <div class="meta-block">
+        <div class="meta-label">Project Team</div>
+        <div class="meta-text team-names">
+          Zhenghao Gong • Bingyan Liu • Stephanie Wang • Weijie Zhang
+        </div>
+      </div>
+
+      <div class="meta-block">
+        <div class="meta-label">Industry Collaboration</div>
+        <div class="meta-text">
+          In partnership with San Diego Gas &amp; Electric (SDG&amp;E)
+        </div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
