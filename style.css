@@ -366,7 +366,7 @@ body {
 /* --- Methods Grid --- */
 .methods-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(5, minmax(250px, 1fr));
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
@@ -423,7 +423,6 @@ body {
 .result-placeholder h4 { margin-bottom: 1rem; color: var(--primary); }
 
 .fake-chart {
-    height: 200px;
     background: #f8fafc;
     border: 2px dashed #cbd5e1;
     border-radius: 8px;
