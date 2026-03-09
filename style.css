@@ -886,6 +886,15 @@ footer {
         flex-direction: column;
         gap: 1rem;
     }
+
+    .hero-text-content {
+        order: 1;
+    }
+
+    .hero-visual {
+        order: 2;
+        height: 280px;
+    }
 }
 
 @media (max-width: 480px) {
