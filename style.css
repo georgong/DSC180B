@@ -933,6 +933,15 @@ footer {
     border-top: 1px solid #1e293b;
 }
 
+#application + #demo {
+    border-top: 1px solid #1e293b;
+}
+
+/* Add matching divider between demo and footer */
+#demo + footer {
+    border-top: 1px solid #1e293b;
+}
+
 /* --- 合作方 Logo 样式 --- */
 .partner-logos {
     display: flex;
