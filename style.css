@@ -478,12 +478,12 @@ body {
 .text-white .section-tag { color: #38bdf8 !important; }
 
 .app-showcase {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 4rem;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    align-items: stretch;
 }
 
 .app-desc { color: #cbd5e1; }
@@ -509,10 +509,15 @@ body {
     border-radius: 12px;
     border: 1px solid #334155;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+    /* make monitor match video-wrapper aspect ratio (16:9) */
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: block;
 }
 .screen {
     background: #0f172a;
-    height: 300px;
+    height: 100%;           /* fill .monitor when inside it */
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -526,11 +531,12 @@ body {
     width: 100%;
     max-width: 960px;
     margin: 0 auto;
-    padding: 1rem;
-    background: white;
-    border: 1px solid var(--border);
+    padding: 1rem;                   /* match .monitor */
+    background: #1e293b;             /* dark slate to match slideshow container */
+    border: 1px solid #334155;       /* same border used by .monitor */
     border-radius: 12px;
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* match .monitor's shadow */
+    color: #cbd5e1;                  /* ensure readable text on dark bg */
 }
 
 .video-wrapper {
@@ -556,16 +562,21 @@ body {
 footer {
     text-align: center;
     padding: 3rem 2rem;
-    background: white;
-    color: var(--text-light);
+    background: var(--primary); /* dark background */
+    color: #cbd5e1;             /* light-gray text for contrast */
     font-size: 0.9rem;
 }
-.footer-note { margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.7; }
+.footer-note {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: rgba(203,213,225,0.85); /* slightly muted but readable on dark bg */
+    opacity: 1;
+}
 
 /* Slideshow styles (small, self-contained) */
 .app-visual { display: flex; flex-direction: column; width: 100%; }
 .app-visual .monitor { display:flex; align-items:center; justify-content:center; width: 100%; }
-.screen { position:relative; width:100%; height:360px; max-width:900px; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:6px; }
+.screen { position:relative; width:100%; height:100%; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:6px; }
 .slide-img { width:100%; height:100%; object-fit:contain; display:block; }
 .slideshow-btn {
     position:absolute;
@@ -714,6 +725,15 @@ footer {
     .mobile-menu-toggle.active .bar:nth-child(3) {
         transform: translateY(-8px) rotate(-45deg);
     }
+}
+
+#application + #demo {
+    border-top: 1px solid #1e293b;
+}
+
+/* Add matching divider between demo and footer */
+#demo + footer {
+    border-top: 1px solid #1e293b;
 }
 
 /* --- 合作方 Logo 样式 --- */
