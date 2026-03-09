@@ -725,6 +725,203 @@ footer {
     .mobile-menu-toggle.active .bar:nth-child(3) {
         transform: translateY(-8px) rotate(-45deg);
     }
+
+    /* --- 全局样式调整 --- */
+    :root {
+        --primary: #ffffff;    /* 亮色模式主色调 */
+        --accent: #0284c7;     /* 科技蓝保持不变 */
+        --text-main: #0f172a;  /* 主要文字改为深色 */
+        --text-light: #334155; /* 次要文字改为中等深度 */
+        --bg-light: #f8fafc;   /* 浅灰背景保持不变 */
+        --border: #e2e8f0;     /* 边框色保持不变 */
+        --card-bg: rgba(255, 255, 255, 0.9); /* 卡片背景更亮 */
+    }
+
+    /* 全局文字颜色调整 */
+    body, 
+    h1, h2, h3, h4, h5, h6, 
+    p, 
+    a, 
+    li, 
+    span, 
+    div {
+        color: var(--text-main) !important;
+    }
+
+    /* 链接 hover 状态调整 */
+    a:hover {
+        color: var(--accent) !important;
+    }
+
+    /* 按钮样式调整 */
+    .btn-tech {
+        background: var(--accent); /* 科技蓝 */
+        color: #fff;
+    }
+
+    .btn-tech:hover {
+        background: #1d1d1f; /* 苹果官网标志性深灰 */
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(29, 29, 31, 0.15); /* 更柔和、通透的灰色阴影 */
+    }
+
+    .btn-tech.btn-outline-tech {
+        color: var(--accent); 
+        border: 2px solid var(--accent); 
+    }
+
+    .btn-tech.btn-outline-tech:hover {
+        background: #1d1d1f; /* 苹果官网标志性深灰 */
+        color: #fff; 
+        border-color: #1d1d1f; 
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(29, 29, 31, 0.15); /* 同样的柔和灰色阴影 */
+    }
+
+    /* 导航栏样式调整 */
+    .navbar {
+        background: rgba(15, 23, 42, 0.9); /* 半透明深色背景 */
+        border-bottom: 1px solid var(--border);
+    }
+
+    .nav-links {
+        padding: 1rem 0;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .nav-links a {
+        padding: 0.5rem 1rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Hero Section 调整 */
+    .hero-opt2 {
+        padding: 7rem 1.5rem 4rem;
+        min-height: auto;
+    }
+
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .hero-title-left {
+        font-size: 2.8rem;
+        letter-spacing: -1px;
+    }
+
+    .hero-subtitle-left {
+        font-size: 1.4rem;
+    }
+
+    .hero-desc {
+        font-size: 1rem;
+        max-width: 100%;
+    }
+
+    .hero-visual {
+        height: 280px;
+    }
+
+    /* Sections */
+    .section {
+        padding: 4rem 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.8rem;
+    }
+
+    /* Cards */
+    .cards-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card {
+        min-width: unset;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    /* Methods */
+    .methods-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Results */
+    .results-container {
+        max-width: 100%;
+    }
+
+    .result-frame-wrap {
+        aspect-ratio: 4 / 3;
+    }
+
+    /* App showcase */
+    .app-showcase {
+        gap: 1.5rem;
+    }
+
+    /* Monitor/slideshow */
+    .monitor {
+        aspect-ratio: 16 / 9;
+    }
+
+    /* Demo container */
+    .demo-container {
+        padding: 0.75rem;
+    }
+
+    /* Buttons */
+    .btn-tech {
+        padding: 0.85rem 1.75rem;
+        font-size: 0.9rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title-left {
+        font-size: 2.2rem;
+    }
+
+    .hero-subtitle-left {
+        font-size: 1.2rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .hero-visual {
+        height: 220px;
+    }
+
+    .tech-team-info {
+        font-size: 0.82rem;
+    }
+
+    footer {
+        padding: 2rem 1.5rem;
+        font-size: 0.82rem;
+    }
+}
+
+#application + #demo {
+    border-top: 1px solid #1e293b;
+}
+
+/* Add matching divider between demo and footer */
+#demo + footer {
+    border-top: 1px solid #1e293b;
 }
 
 #application + #demo {
