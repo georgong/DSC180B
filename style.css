@@ -415,7 +415,6 @@ body {
 }
 
 .result-placeholder {
-    border: 1px solid var(--border);
     padding: 2rem;
     border-radius: 12px;
 }
@@ -446,6 +445,20 @@ body {
     background: #0a0a0f;
     min-width: 320px;
     min-height: 520px;
+}
+
+.result-frame {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border: none;
+}
+
+.result-frame-wrap {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
 }
 
 .embed-viz {
