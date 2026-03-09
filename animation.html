@@ -84,7 +84,7 @@
 <body>
   <div id="container">
     <div class="loading" id="loading">loading...</div>
-    <div class="phase-label" id="phase-label">Entities</div>
+    <div class="phase-label" id="phase-label"></div>
     <svg id="viz"></svg>
   </div>
 
@@ -93,20 +93,20 @@
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      // Entity types and colors：task #38bdf8，assignment #0284c7，engineers  #818cf8
+      // Entity types and colors：task #38bdf8，assignment #0284c7，engineers #818cf8；A 清新 #2dd4bf，C 灵动 #f472b6
       const ENTITY_COLORS = {
         task: '#38bdf8',
         assignment: '#0284c7',
         engineers: '#818cf8',
-        project: '#10b981',
-        resource: '#ec4899',
+        A: '#2dd4bf',
+        C: '#f472b6',
         team: '#6366f1',
         default: '#94a3b8'
       };
 
       const SPECIAL_IDS = ['task', 'assignment', 'engineers'];
       const NODE_R = 5.5;
-      const LOGO_NODE_R = 12;
+      const LOGO_NODE_R = 20;
 
       let svg, gMap, gNodes, gLinks, gLogoLabel;
       let projection, path;
@@ -176,19 +176,32 @@
           });
         });
 
+        function isInsideMap(px, py) {
+          var lonlat = projection.invert([px, py]);
+          if (!lonlat || isNaN(lonlat[0]) || isNaN(lonlat[1])) return false;
+          return features.some(function (f) { return d3.geoContains(f, lonlat); });
+        }
+
         // Add more nodes so graph looks full (reuse positions)
         const allPositions = features.slice(0, 40).map(f => {
           const c = d3.geoCentroid(f);
           return projection(c);
         }).filter(p => p[0] >= 0 && p[0] <= width && p[1] >= 0 && p[1] <= height);
 
-        for (let k = 0; k < 25; k++) {
+        for (let k = 0; k < 20; k++) {
           const pos = allPositions[k % allPositions.length];
           const type = entityTypes[k % entityTypes.length];
+          var x = pos[0], y = pos[1];
+          var maxTries = 20;
+          for (var t = 0; t < maxTries; t++) {
+            var xc = pos[0] + (Math.random() - 0.5) * 60;
+            var yc = pos[1] + (Math.random() - 0.5) * 60;
+            if (isInsideMap(xc, yc)) { x = xc; y = yc; break; }
+          }
           nodesList.push({
             id: `n-${k}-${type}`,
-            x: pos[0] + (Math.random() - 0.5) * 60,
-            y: pos[1] + (Math.random() - 0.5) * 60,
+            x: x,
+            y: y,
             type,
             isSpecial: false
           });
@@ -383,21 +396,27 @@
           const left = { x: cx - r * Math.sqrt(3) / 2, y: cy + r / 2 };
           const right = { x: cx + r * Math.sqrt(3) / 2, y: cy + r / 2 };
           const top = { x: cx, y: cy - r };
-          const pos = { task: left, assignment: top, engineers: right };
+          const posTriangle = { task: left, assignment: top, engineers: right };
+          var side = 2.1 * LOGO_NODE_R;
+          var h = side / Math.sqrt(3);
+          const posCluster = {
+            assignment: { x: cx, y: cy - h },
+            task: { x: cx - side / 2, y: cy + h / 2 },
+            engineers: { x: cx + side / 2, y: cy + h / 2 }
+          };
 
+          var startPos = {
+            task: { x: task.x, y: task.y },
+            assignment: { x: assignment.x, y: assignment.y },
+            engineers: { x: engineers.x, y: engineers.y }
+          };
           [task, assignment, engineers].forEach((node) => {
-            const p = pos[node.id];
+            const p = posTriangle[node.id];
             node.fx = node.x = p.x;
             node.fy = node.y = p.y;
           });
 
-          const linkEndpoints = (d) => {
-            const id1 = typeof d.source === 'object' ? d.source.id : d.source;
-            const id2 = typeof d.target === 'object' ? d.target.id : d.target;
-            const p1 = pos[id1], p2 = pos[id2];
-            return { x1: p1?.x ?? 0, y1: p1?.y ?? 0, x2: p2?.x ?? 0, y2: p2?.y ?? 0 };
-          };
-
+          const TRIANGLE_DURATION = 800;
           const threeCircles = gNodes.selectAll('circle').filter(d => d.isSpecial);
           threeCircles
             .attr('fill', d => ENTITY_COLORS[d.type] || ENTITY_COLORS.default)
@@ -408,49 +427,117 @@
             .attr('stroke-width', 1.5)
             .attr('opacity', 1)
             .raise();
-          threeCircles
-            .transition().duration(800)
-            .attr('cx', d => pos[d.id].x)
-            .attr('cy', d => pos[d.id].y)
+          var step1Transition = threeCircles
+            .transition().duration(TRIANGLE_DURATION).ease(d3.easeCubicInOut)
+            .attrTween('cx', function(d) {
+              var i = d3.interpolateNumber(startPos[d.id].x, posTriangle[d.id].x);
+              return function(t) { return i(t); };
+            })
+            .attrTween('cy', function(d) {
+              var i = d3.interpolateNumber(startPos[d.id].y, posTriangle[d.id].y);
+              return function(t) { return i(t); };
+            })
             .attr('r', LOGO_NODE_R)
-            .attr('filter', 'drop-shadow(0 0 1px currentColor)');
+            .attr('filter', 'drop-shadow(0 0 0px currentColor)');
 
-          gLinks.selectAll('line')
-            .transition().duration(800)
-            .style('stroke-opacity', d => isLogoLink(d) ? '0.9' : '0')
-            .attr('stroke-opacity', d => isLogoLink(d) ? 0.9 : 0)
-            .attr('stroke-width', d => isLogoLink(d) ? 2.5 : 1)
-            .attr('stroke', d => isLogoLink(d) ? 'rgba(200,220,255,0.9)' : null);
-          gLinks.selectAll('line').filter(isLogoLink)
-            .transition().duration(800)
-            .attr('x1', d => linkEndpoints(d).x1)
-            .attr('y1', d => linkEndpoints(d).y1)
-            .attr('x2', d => linkEndpoints(d).x2)
-            .attr('y2', d => linkEndpoints(d).y2);
+          gLinks.selectAll('line').filter(d => !isLogoLink(d))
+            .transition().duration(TRIANGLE_DURATION)
+            .style('stroke-opacity', '0').attr('stroke-opacity', 0);
+          var logoLines = gLinks.selectAll('line').filter(isLogoLink);
+          logoLines
+            .style('stroke-opacity', '0.9').attr('stroke-opacity', 0.9)
+            .attr('stroke-width', 2.5)
+            .attr('stroke', 'rgba(200,220,255,0.9)');
+          logoLines
+            .transition().duration(TRIANGLE_DURATION).ease(d3.easeCubicInOut)
+            .attrTween('x1', function(d) {
+              var id = typeof d.source === 'object' ? d.source.id : d.source;
+              var i = d3.interpolateNumber(startPos[id].x, posTriangle[id].x);
+              return function(t) { return i(t); };
+            })
+            .attrTween('y1', function(d) {
+              var id = typeof d.source === 'object' ? d.source.id : d.source;
+              var i = d3.interpolateNumber(startPos[id].y, posTriangle[id].y);
+              return function(t) { return i(t); };
+            })
+            .attrTween('x2', function(d) {
+              var id = typeof d.target === 'object' ? d.target.id : d.target;
+              var i = d3.interpolateNumber(startPos[id].x, posTriangle[id].x);
+              return function(t) { return i(t); };
+            })
+            .attrTween('y2', function(d) {
+              var id = typeof d.target === 'object' ? d.target.id : d.target;
+              var i = d3.interpolateNumber(startPos[id].y, posTriangle[id].y);
+              return function(t) { return i(t); };
+            });
 
-          gLogoLabel.selectAll('*').remove();
-          const labelY = cy + r / 2 + 52;
-          gLogoLabel.append('defs')
-            .append('linearGradient').attr('id', 'logoWowGrad')
-            .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
-            .selectAll('stop')
-            .data([{ offset: '0%', color: '#0284c7' }, { offset: '100%', color: '#6366f1' }])
-            .join('stop').attr('offset', d => d.offset).attr('stop-color', d => d.color);
-          const logoText = gLogoLabel.append('text')
-            .attr('x', cx)
-            .attr('y', labelY)
-            .attr('text-anchor', 'middle')
-            .attr('class', 'logo-label-text');
-          logoText.append('tspan')
-            .attr('class', 'logo-wow-text')
-            .attr('fill', 'url(#logoWowGrad)')
-            .text('WOW');
-          logoText.append('tspan')
-            .attr('class', 'logo-model-text')
-            .attr('fill', '#64748b')
-            .attr('dx', '-1')
-            .text(' Model');
-          gLogoLabel.transition().duration(600).attr('opacity', 1);
+          step1Transition.end().then(() => {
+            [task, assignment, engineers].forEach((node) => {
+              const p = posCluster[node.id];
+              node.fx = node.x = p.x;
+              node.fy = node.y = p.y;
+            });
+            const duration = 600;
+            threeCircles
+              .attr('class', 'node logo-dot')
+              .transition().duration(duration).ease(d3.easeCubicInOut)
+              .attrTween('cx', function(d) {
+                var i = d3.interpolateNumber(posTriangle[d.id].x, posCluster[d.id].x);
+                return function(t) { return i(t); };
+              })
+              .attrTween('cy', function(d) {
+                var i = d3.interpolateNumber(posTriangle[d.id].y, posCluster[d.id].y);
+                return function(t) { return i(t); };
+              });
+            var step2Transition = logoLines
+              .transition().duration(duration).ease(d3.easeCubicInOut)
+              .attrTween('x1', function(d) {
+                var id = typeof d.source === 'object' ? d.source.id : d.source;
+                var i = d3.interpolateNumber(posTriangle[id].x, posCluster[id].x);
+                return function(t) { return i(t); };
+              })
+              .attrTween('y1', function(d) {
+                var id = typeof d.source === 'object' ? d.source.id : d.source;
+                var i = d3.interpolateNumber(posTriangle[id].y, posCluster[id].y);
+                return function(t) { return i(t); };
+              })
+              .attrTween('x2', function(d) {
+                var id = typeof d.target === 'object' ? d.target.id : d.target;
+                var i = d3.interpolateNumber(posTriangle[id].x, posCluster[id].x);
+                return function(t) { return i(t); };
+              })
+              .attrTween('y2', function(d) {
+                var id = typeof d.target === 'object' ? d.target.id : d.target;
+                var i = d3.interpolateNumber(posTriangle[id].y, posCluster[id].y);
+                return function(t) { return i(t); };
+              });
+            step2Transition.end().then(() => {
+              gLogoLabel.selectAll('*').remove();
+              var labelY = cy + 62;
+              gLogoLabel.attr('opacity', 0);
+              gLogoLabel.append('defs')
+                .append('linearGradient').attr('id', 'logoWowGrad')
+                .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
+                .selectAll('stop')
+                .data([{ offset: '0%', color: '#0284c7' }, { offset: '100%', color: '#6366f1' }])
+                .join('stop').attr('offset', d => d.offset).attr('stop-color', d => d.color);
+              var logoText = gLogoLabel.append('text')
+                .attr('x', cx)
+                .attr('y', labelY)
+                .attr('text-anchor', 'middle')
+                .attr('class', 'logo-label-text');
+              logoText.append('tspan')
+                .attr('class', 'logo-wow-text')
+                .attr('fill', 'url(#logoWowGrad)')
+                .text('WOW');
+              logoText.append('tspan')
+                .attr('class', 'logo-model-text')
+                .attr('fill', '#64748b')
+                .attr('dx', '-1')
+                .text(' Model');
+              gLogoLabel.transition().duration(1000).ease(d3.easeQuadOut).attr('opacity', 1);
+            });
+          });
         }, FADE_DURATION);
       }
 
@@ -480,18 +567,15 @@
         drawNodes(nodes);
 
         const schedule = [
-          [0, () => setPhase('Entities')],
           [200, () => {
-            setPhase('Entities');
             drawNodes(nodes, true);
           }],
           [1700, () => {
-            setPhase('Graph');
             fadeMap();
             drawLinks(links, nodes);
           }],
           [2700, () => {
-            setPhase('Graph Representation');
+            setPhase('');
             showLogo();
           }]
         ];
