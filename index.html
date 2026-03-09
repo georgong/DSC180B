@@ -80,14 +80,8 @@
 
             <div class="hero-visual">
                 <div class="visual-box">
-                    <div class="graph-icon-placeholder">
-                        <div class="node n1"></div>
-                        <div class="node n2"></div>
-                        <div class="node n3"></div>
-                        <div class="line l1"></div>
-                        <div class="line l2"></div>
-                    </div>
-                    <p class="visual-caption">Heterogeneous Graph Representation<br><span style="font-size:0.8em; color:#94a3b8;">Tasks • Crews • Technicians • Districts</span></p>
+                    <iframe src="animation.html" title="San Diego → Graph → WOW Model" class="animation-embed"
+                        width="100%" height="100%" style="border: none; display: block;"></iframe>
                 </div>
             </div>
         </div>
@@ -137,6 +131,10 @@
                 <h3>Baseline: MLP</h3>
                 <p>Non-graph baseline treating tasks independently. Used to benchmark the value of structural information.</p>
             </div>
+            <div class="method-box">
+                <h3>Baseline: LightGBM</h3>
+                <p>Gradient boosting tree model designed for tabular data. Serves as a strong traditional baseline to compare against neural network and graph-based approaches.</p>
+            </div>
             <div class="method-box highlight-method">
                 <h3>RGCN</h3>
                 <p><strong>Relational Graph Convolutional Networks.</strong> Distinguished semantically different interactions (e.g., assignment vs. geographic).</p>
@@ -161,21 +159,21 @@
         
         <div class="results-container">
             <div class="result-placeholder">
-                <h4>Model Performance Comparison</h4>
-                <p>Comparison of Smooth L1 Loss across MLP, GraphSAGE, RGCN, and HGT architectures.</p>
-                <div class="fake-chart">
-                    <span>[ Chart: Training Convergence & Loss Curves to be supplemented ]</span>
+                <h4>Graph Model Training Curve</h4>
+                <p>Smooth L1 Training Loss across GraphSAGE, RGCN, and HGT models.</p>
+                <div class="result-frame-wrap">
+                    <iframe src="assets/graph_loss_curve.html" class="result-frame"></iframe>
                 </div>
             </div>
 
-            <div class="result-placeholder">
-                <h4>Graph Structural Analysis</h4>
-                <p><strong>Moran's I Analysis:</strong> Confirmed strong spatial autocorrelation ($I \approx 1.95$ for dim 0), proving that scheduling data has non-random, learnable structure.</p>
-                <p><strong>Smoothness:</strong> Real engineer features are significantly smoother than randomized baselines.</p>
-                <div class="fake-chart">
-                    <span>[ Chart: Feature Smoothness & Correlation Heatmap to be supplemented ]</span>
+            <div class="results-container">
+                <div class="result-placeholder">
+                    <h4>Graph VS Tabular Performance</h4>
+                    <p>Comparison of Evaluation Loss across MLP, LightGBM and GraphSAGE.</p>
+                    <div class="result-frame-wrap">
+                        <iframe src="assets/metrics_bar.html" class="result-frame"></iframe>
+                    </div>
                 </div>
-            </div>
 
             <div class="result-placeholder">
                 <h4>Model Representation Visualization</h4>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <script src="assets/d3.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'SF Pro Text', -apple-system, sans-serif;
+      background: #ffffff;
+      color: #1e293b;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+    #viz {
+      width: 100%;
+      height: 100%;
+    }
+    .phase-label {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      opacity: 0.7;
+      color: #475569;
+      transition: opacity 0.5s;
+      z-index: 10;
+    }
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      opacity: 0.8;
+      color: #475569;
+      z-index: 20;
+    }
+    .map-path {
+      fill: rgba(30, 58, 138, 0.12);
+      stroke: rgba(30, 64, 175, 0.35);
+      stroke-width: 0.5px;
+      transition: opacity 2s ease-out, stroke 2s ease-out;
+    }
+    .map-path.faded {
+      fill: transparent;
+      stroke: transparent;
+      opacity: 0;
+    }
+    .node {
+      cursor: pointer;
+      transition: r 0.3s, filter 0.3s;
+    }
+    .node.highlight {
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+    .link {
+      stroke-width: 1;
+      transition: stroke-width 0.8s;
+    }
+    .logo-wow-text {
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -0.5px;
+      font-family: 'Manrope', 'SF Pro Text', -apple-system, sans-serif;
+    }
+    .logo-model-text {
+      font-weight: 400;
+      font-size: 1.3rem;
+      font-family: 'Manrope', 'SF Pro Text', -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div class="loading" id="loading">loading...</div>
+    <div class="phase-label" id="phase-label"></div>
+    <svg id="viz"></svg>
+  </div>
+
+  <script>
+    (function () {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      // Entity types and colors：task #38bdf8，assignment #0284c7，engineers #818cf8；A 清新 #2dd4bf，C 灵动 #f472b6
+      const ENTITY_COLORS = {
+        task: '#38bdf8',
+        assignment: '#0284c7',
+        engineers: '#818cf8',
+        A: '#2dd4bf',
+        C: '#f472b6',
+        team: '#6366f1',
+        default: '#94a3b8'
+      };
+
+      const SPECIAL_IDS = ['task', 'assignment', 'engineers'];
+      const NODE_R = 5.5;
+      const LOGO_NODE_R = 20;
+
+      let svg, gMap, gNodes, gLinks, gLogoLabel;
+      let projection, path;
+      let nodes = [], links = [];
+      let simulation = null;
+      let geoData = null;
+
+      function initSVG() {
+        svg = d3.select('#viz')
+          .attr('viewBox', [0, 0, width, height])
+          .attr('width', width)
+          .attr('height', height);
+        gMap = svg.append('g').attr('class', 'map');
+        gLinks = svg.append('g').attr('class', 'links');
+        gNodes = svg.append('g').attr('class', 'nodes');
+        gLogoLabel = svg.append('g').attr('class', 'logo-label').attr('opacity', 0);
+      }
+
+      function initProjection(geoJson) {
+        projection = d3.geoMercator()
+          .fitSize([width, height], geoJson);
+        path = d3.geoPath(projection);
+      }
+
+      // Build nodes: some at feature centroids, with entity types. Include task, assignment, engineers.
+      function buildNodesFromGeo(features) {
+        const entityTypes = Object.keys(ENTITY_COLORS).filter(k => k !== 'default');
+        const byType = {};
+        entityTypes.forEach(t => { byType[t] = []; });
+
+        const positions = [];
+        features.forEach((f, i) => {
+          const c = d3.geoCentroid(f);
+          const pt = projection(c);
+          if (pt[0] >= 0 && pt[0] <= width && pt[1] >= 0 && pt[1] <= height) {
+            const type = entityTypes[i % entityTypes.length];
+            byType[type].push({ x: pt[0], y: pt[1], type, featureIndex: i });
+          }
+        });
+
+        // Ensure we have exactly one node for task, assignment, engineers
+        const nodesList = [];
+        let id = 0;
+        SPECIAL_IDS.forEach(type => {
+          const arr = byType[type] || [];
+          const pick = arr[0] || { x: width / 2 + (id - 1) * 80, y: height / 2, type };
+          nodesList.push({
+            id: type,
+            x: pick.x,
+            y: pick.y,
+            type,
+            isSpecial: true
+          });
+          id++;
+        });
+
+        entityTypes.forEach(type => {
+          if (SPECIAL_IDS.includes(type)) return;
+          (byType[type] || []).slice(0, 12).forEach((p, j) => {
+            nodesList.push({
+              id: `n-${type}-${j}`,
+              x: p.x,
+              y: p.y,
+              type,
+              isSpecial: false
+            });
+          });
+        });
+
+        function isInsideMap(px, py) {
+          var lonlat = projection.invert([px, py]);
+          if (!lonlat || isNaN(lonlat[0]) || isNaN(lonlat[1])) return false;
+          return features.some(function (f) { return d3.geoContains(f, lonlat); });
+        }
+
+        // Add more nodes so graph looks full (reuse positions)
+        const allPositions = features.slice(0, 40).map(f => {
+          const c = d3.geoCentroid(f);
+          return projection(c);
+        }).filter(p => p[0] >= 0 && p[0] <= width && p[1] >= 0 && p[1] <= height);
+
+        for (let k = 0; k < 20; k++) {
+          const pos = allPositions[k % allPositions.length];
+          const type = entityTypes[k % entityTypes.length];
+          var x = pos[0], y = pos[1];
+          var maxTries = 20;
+          for (var t = 0; t < maxTries; t++) {
+            var xc = pos[0] + (Math.random() - 0.5) * 60;
+            var yc = pos[1] + (Math.random() - 0.5) * 60;
+            if (isInsideMap(xc, yc)) { x = xc; y = yc; break; }
+          }
+          nodesList.push({
+            id: `n-${k}-${type}`,
+            x: x,
+            y: y,
+            type,
+            isSpecial: false
+          });
+        }
+
+        return nodesList;
+      }
+
+      function buildLinks(nodeList) {
+        const linksList = [];
+        const byId = d3.index(nodeList, d => d.id);
+
+        // task ↔ assignment ↔ engineers（三角形三边）
+        if (byId.has('task') && byId.has('assignment'))
+          linksList.push({ source: 'task', target: 'assignment' });
+        if (byId.has('assignment') && byId.has('engineers'))
+          linksList.push({ source: 'assignment', target: 'engineers' });
+        if (byId.has('engineers') && byId.has('task'))
+          linksList.push({ source: 'engineers', target: 'task' });
+
+        // Random other links to form a graph
+        nodeList.forEach((n, i) => {
+          if (n.isSpecial) return;
+          const numLinks = 1 + (i % 3);
+          for (let j = 0; j < numLinks; j++) {
+            const other = nodeList[(i + 3 + j * 7) % nodeList.length];
+            if (other.id !== n.id)
+              linksList.push({ source: n.id, target: other.id });
+          }
+        });
+
+        return linksList;
+      }
+
+      function drawMap(features) {
+        gMap.selectAll('path')
+          .data(features)
+          .join('path')
+          .attr('class', 'map-path')
+          .attr('d', path);
+      }
+
+      function fadeMap() {
+        gMap.selectAll('.map-path').classed('faded', true);
+      }
+
+      function drawNodes(data, visible = false) {
+        const sel = gNodes.selectAll('circle')
+          .data(data, d => d.id);
+        sel.join(
+          enter => enter.append('circle')
+            .attr('class', 'node')
+            .attr('r', 0)
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
+            .attr('fill', d => ENTITY_COLORS[d.type] || ENTITY_COLORS.default)
+            .attr('stroke', d => d3.color(ENTITY_COLORS[d.type] || ENTITY_COLORS.default).brighter(0.8))
+            .attr('stroke-width', 1.5)
+        );
+        if (visible) {
+          gNodes.selectAll('circle')
+            .attr('fill', d => ENTITY_COLORS[d.type] || ENTITY_COLORS.default)
+            .attr('stroke', d => d3.color(ENTITY_COLORS[d.type] || ENTITY_COLORS.default).brighter(0.6))
+            .transition().duration(600)
+            .attr('r', NODE_R);
+        }
+      }
+
+      function isLogoLink(d) {
+        const id1 = typeof d.source === 'object' ? (d.source.id || d.source) : d.source;
+        const id2 = typeof d.target === 'object' ? (d.target.id || d.target) : d.target;
+        const pair = id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
+        return pair === 'task-assignment' || pair === 'assignment-task' || pair === 'assignment-engineers' || pair === 'engineers-assignment';
+      }
+
+      function computeLinkRevealDelays(nodes, links) {
+        const specialIds = new Set(SPECIAL_IDS);
+        const dist = {};
+        nodes.forEach(n => { dist[n.id] = specialIds.has(n.id) ? 0 : Infinity; });
+        const adj = {};
+        nodes.forEach(n => { adj[n.id] = []; });
+        links.forEach(l => {
+          const u = typeof l.source === 'object' ? l.source.id : l.source;
+          const v = typeof l.target === 'object' ? l.target.id : l.target;
+          adj[u].push(v);
+          adj[v].push(u);
+        });
+        const queue = nodes.filter(n => specialIds.has(n.id)).map(n => n.id);
+        let head = 0;
+        while (head < queue.length) {
+          const u = queue[head++];
+          for (const v of adj[u]) {
+            if (dist[v] === Infinity) {
+              dist[v] = dist[u] + 1;
+              queue.push(v);
+            }
+          }
+        }
+        const DELAY_PER_LEVEL = 65;
+        links.forEach(l => {
+          const u = typeof l.source === 'object' ? l.source.id : l.source;
+          const v = typeof l.target === 'object' ? l.target.id : l.target;
+          l.revealDelay = Math.min(dist[u] ?? 0, dist[v] ?? 0) * DELAY_PER_LEVEL;
+        });
+      }
+
+      function drawLinks(linksData, nodeData) {
+        const nodeById = d3.index(nodeData, d => d.id);
+        const linkSel = gLinks.selectAll('line')
+          .data(linksData, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+        linkSel.join(
+          enter => enter.append('line')
+            .attr('class', 'link')
+            .attr('data-logo', d => isLogoLink(d) ? '1' : '0')
+            .attr('stroke', '#64748b')
+            .attr('stroke-opacity', 0)
+            .attr('x1', d => {
+              const s = typeof d.source === 'object' ? d.source : nodeById.get(d.source);
+              return s ? s.x : 0;
+            })
+            .attr('y1', d => {
+              const s = typeof d.source === 'object' ? d.source : nodeById.get(d.source);
+              return s ? s.y : 0;
+            })
+            .attr('x2', d => {
+              const t = typeof d.target === 'object' ? d.target : nodeById.get(d.target);
+              return t ? t.x : 0;
+            })
+            .attr('y2', d => {
+              const t = typeof d.target === 'object' ? d.target : nodeById.get(d.target);
+              return t ? t.y : 0;
+            })
+        );
+        gLinks.selectAll('line').attr('data-logo', d => isLogoLink(d) ? '1' : '0');
+        gLinks.selectAll('line')
+          .transition()
+          .delay(d => (d.revealDelay != null ? d.revealDelay : 0))
+          .duration(420)
+          .attr('stroke-opacity', 0.5)
+          .style('stroke-opacity', '0.5');
+      }
+
+      function runForce() {
+        simulation = d3.forceSimulation(nodes)
+          .force('link', d3.forceLink(links).id(d => d.id).distance(80))
+          .force('charge', d3.forceManyBody().strength(-120))
+          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('x', d3.forceX(width / 2).strength(0.05))
+          .force('y', d3.forceY(height / 2).strength(0.05));
+
+        simulation.on('tick', () => {
+          gLinks.selectAll('line')
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+          gNodes.selectAll('circle')
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y);
+        });
+      }
+
+      function showLogo() {
+        if (simulation) simulation.stop();
+        const task = nodes.find(d => d.id === 'task');
+        const assignment = nodes.find(d => d.id === 'assignment');
+        const engineers = nodes.find(d => d.id === 'engineers');
+        if (!task || !assignment || !engineers) return;
+
+        const FADE_DURATION = 1000;
+
+
+        const EDGE_LEAD_MS = 520;
+        const otherEdges = gLinks.selectAll('line[data-logo="0"]');
+        const otherNodes = gNodes.selectAll('circle').filter(d => !d.isSpecial);
+        otherEdges
+          .transition().duration(FADE_DURATION)
+          .attr('stroke-opacity', 0)
+          .style('stroke-opacity', '0');
+        otherNodes
+          .transition().delay(EDGE_LEAD_MS).duration(2000)
+          .attr('opacity', 0);
+        gLinks.selectAll('line[data-logo="1"]')
+          .attr('stroke-opacity', 0.5)
+          .style('stroke-opacity', '0.5');
+
+
+        setTimeout(() => {
+          const cx = width / 2;
+          const cy = height / 2;
+          const r = 72;
+          const left = { x: cx - r * Math.sqrt(3) / 2, y: cy + r / 2 };
+          const right = { x: cx + r * Math.sqrt(3) / 2, y: cy + r / 2 };
+          const top = { x: cx, y: cy - r };
+          const posTriangle = { task: left, assignment: top, engineers: right };
+          var side = 2.1 * LOGO_NODE_R;
+          var h = side / Math.sqrt(3);
+          const posCluster = {
+            assignment: { x: cx, y: cy - h },
+            task: { x: cx - side / 2, y: cy + h / 2 },
+            engineers: { x: cx + side / 2, y: cy + h / 2 }
+          };
+
+          var startPos = {
+            task: { x: task.x, y: task.y },
+            assignment: { x: assignment.x, y: assignment.y },
+            engineers: { x: engineers.x, y: engineers.y }
+          };
+          [task, assignment, engineers].forEach((node) => {
+            const p = posTriangle[node.id];
+            node.fx = node.x = p.x;
+            node.fy = node.y = p.y;
+          });
+
+          const TRIANGLE_DURATION = 800;
+          const threeCircles = gNodes.selectAll('circle').filter(d => d.isSpecial);
+          threeCircles
+            .attr('fill', d => ENTITY_COLORS[d.type] || ENTITY_COLORS.default)
+            .attr('stroke', d => {
+              const c = d3.color(ENTITY_COLORS[d.type] || ENTITY_COLORS.default);
+              return c ? c.brighter(0.6).toString() : '#fff';
+            })
+            .attr('stroke-width', 1.5)
+            .attr('opacity', 1)
+            .raise();
+          var step1Transition = threeCircles
+            .transition().duration(TRIANGLE_DURATION).ease(d3.easeCubicInOut)
+            .attrTween('cx', function(d) {
+              var i = d3.interpolateNumber(startPos[d.id].x, posTriangle[d.id].x);
+              return function(t) { return i(t); };
+            })
+            .attrTween('cy', function(d) {
+              var i = d3.interpolateNumber(startPos[d.id].y, posTriangle[d.id].y);
+              return function(t) { return i(t); };
+            })
+            .attr('r', LOGO_NODE_R)
+            .attr('filter', 'drop-shadow(0 0 0px currentColor)');
+
+          gLinks.selectAll('line').filter(d => !isLogoLink(d))
+            .transition().duration(TRIANGLE_DURATION)
+            .style('stroke-opacity', '0').attr('stroke-opacity', 0);
+          var logoLines = gLinks.selectAll('line').filter(isLogoLink);
+          logoLines
+            .style('stroke-opacity', '0.9').attr('stroke-opacity', 0.9)
+            .attr('stroke-width', 2.5)
+            .attr('stroke', 'rgba(200,220,255,0.9)');
+          logoLines
+            .transition().duration(TRIANGLE_DURATION).ease(d3.easeCubicInOut)
+            .attrTween('x1', function(d) {
+              var id = typeof d.source === 'object' ? d.source.id : d.source;
+              var i = d3.interpolateNumber(startPos[id].x, posTriangle[id].x);
+              return function(t) { return i(t); };
+            })
+            .attrTween('y1', function(d) {
+              var id = typeof d.source === 'object' ? d.source.id : d.source;
+              var i = d3.interpolateNumber(startPos[id].y, posTriangle[id].y);
+              return function(t) { return i(t); };
+            })
+            .attrTween('x2', function(d) {
+              var id = typeof d.target === 'object' ? d.target.id : d.target;
+              var i = d3.interpolateNumber(startPos[id].x, posTriangle[id].x);
+              return function(t) { return i(t); };
+            })
+            .attrTween('y2', function(d) {
+              var id = typeof d.target === 'object' ? d.target.id : d.target;
+              var i = d3.interpolateNumber(startPos[id].y, posTriangle[id].y);
+              return function(t) { return i(t); };
+            });
+
+          step1Transition.end().then(() => {
+            [task, assignment, engineers].forEach((node) => {
+              const p = posCluster[node.id];
+              node.fx = node.x = p.x;
+              node.fy = node.y = p.y;
+            });
+            const duration = 600;
+            threeCircles
+              .attr('class', 'node logo-dot')
+              .transition().duration(duration).ease(d3.easeCubicInOut)
+              .attrTween('cx', function(d) {
+                var i = d3.interpolateNumber(posTriangle[d.id].x, posCluster[d.id].x);
+                return function(t) { return i(t); };
+              })
+              .attrTween('cy', function(d) {
+                var i = d3.interpolateNumber(posTriangle[d.id].y, posCluster[d.id].y);
+                return function(t) { return i(t); };
+              });
+            var step2Transition = logoLines
+              .transition().duration(duration).ease(d3.easeCubicInOut)
+              .attrTween('x1', function(d) {
+                var id = typeof d.source === 'object' ? d.source.id : d.source;
+                var i = d3.interpolateNumber(posTriangle[id].x, posCluster[id].x);
+                return function(t) { return i(t); };
+              })
+              .attrTween('y1', function(d) {
+                var id = typeof d.source === 'object' ? d.source.id : d.source;
+                var i = d3.interpolateNumber(posTriangle[id].y, posCluster[id].y);
+                return function(t) { return i(t); };
+              })
+              .attrTween('x2', function(d) {
+                var id = typeof d.target === 'object' ? d.target.id : d.target;
+                var i = d3.interpolateNumber(posTriangle[id].x, posCluster[id].x);
+                return function(t) { return i(t); };
+              })
+              .attrTween('y2', function(d) {
+                var id = typeof d.target === 'object' ? d.target.id : d.target;
+                var i = d3.interpolateNumber(posTriangle[id].y, posCluster[id].y);
+                return function(t) { return i(t); };
+              });
+            step2Transition.end().then(() => {
+              gLogoLabel.selectAll('*').remove();
+              var labelY = cy + 62;
+              gLogoLabel.attr('opacity', 0);
+              gLogoLabel.append('defs')
+                .append('linearGradient').attr('id', 'logoWowGrad')
+                .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
+                .selectAll('stop')
+                .data([{ offset: '0%', color: '#0284c7' }, { offset: '100%', color: '#6366f1' }])
+                .join('stop').attr('offset', d => d.offset).attr('stop-color', d => d.color);
+              var logoText = gLogoLabel.append('text')
+                .attr('x', cx)
+                .attr('y', labelY)
+                .attr('text-anchor', 'middle')
+                .attr('class', 'logo-label-text');
+              logoText.append('tspan')
+                .attr('class', 'logo-wow-text')
+                .attr('fill', 'url(#logoWowGrad)')
+                .text('WOW');
+              logoText.append('tspan')
+                .attr('class', 'logo-model-text')
+                .attr('fill', '#64748b')
+                .attr('dx', '-1')
+                .text(' Model');
+              gLogoLabel.transition().duration(1000).ease(d3.easeQuadOut).attr('opacity', 1);
+            });
+          });
+        }, FADE_DURATION);
+      }
+
+      function setPhase(text) {
+        d3.select('#phase-label').text(text);
+      }
+
+      function startAnimation() {
+        d3.select('#loading').style('display', 'none');
+        const features = geoData.features;
+        const collection = { type: 'FeatureCollection', features };
+        initProjection(collection);
+        initSVG();
+        drawMap(features);
+
+        const nodeList = buildNodesFromGeo(features);
+        nodes = nodeList;
+        links = buildLinks(nodeList);
+
+        // Bind link sources/targets to node objects for force
+        links.forEach(l => {
+          l.source = nodeList.find(n => n.id === (l.source.id || l.source)) || l.source;
+          l.target = nodeList.find(n => n.id === (l.target.id || l.target)) || l.target;
+        });
+        computeLinkRevealDelays(nodeList, links);
+
+        drawNodes(nodes);
+
+        const schedule = [
+          [200, () => {
+            drawNodes(nodes, true);
+          }],
+          [1700, () => {
+            fadeMap();
+            drawLinks(links, nodes);
+          }],
+          [2700, () => {
+            setPhase('');
+            showLogo();
+          }]
+        ];
+
+        schedule.forEach(([ms, fn]) => setTimeout(fn, ms));
+      }
+
+      // Load San Diego GeoJSON (neighborhoods or county)
+      const GEO_URL = 'assets/san-diego.geojson';
+      const FALLBACK_GEO = {
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          properties: { name: 'San Diego' },
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[
+              [-117.28, 32.68], [-116.92, 32.68], [-116.92, 33.12], [-117.28, 33.12], [-117.28, 32.68]
+            ]]
+          }
+        }]
+      };
+
+      d3.json(GEO_URL)
+        .then(data => {
+          geoData = data && data.features && data.features.length ? data : FALLBACK_GEO;
+          startAnimation();
+        })
+        .catch(() => {
+          geoData = FALLBACK_GEO;
+          startAnimation();
+        });
+    })();
+  </script>
+</body>
+</html>
