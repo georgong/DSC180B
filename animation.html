@@ -214,7 +214,7 @@
         const linksList = [];
         const byId = d3.index(nodeList, d => d.id);
 
-        // task ↔ assignment ↔ engineers（三角形三边）
+        // task ↔ assignment ↔ engineers
         if (byId.has('task') && byId.has('assignment'))
           linksList.push({ source: 'task', target: 'assignment' });
         if (byId.has('assignment') && byId.has('engineers'))
@@ -374,16 +374,11 @@
         const FADE_DURATION = 1000;
 
 
-        const EDGE_LEAD_MS = 520;
         const otherEdges = gLinks.selectAll('line[data-logo="0"]');
-        const otherNodes = gNodes.selectAll('circle').filter(d => !d.isSpecial);
         otherEdges
           .transition().duration(FADE_DURATION)
           .attr('stroke-opacity', 0)
           .style('stroke-opacity', '0');
-        otherNodes
-          .transition().delay(EDGE_LEAD_MS).duration(2000)
-          .attr('opacity', 0);
         gLinks.selectAll('line[data-logo="1"]')
           .attr('stroke-opacity', 0.5)
           .style('stroke-opacity', '0.5');
@@ -404,6 +399,75 @@
             task: { x: cx - side / 2, y: cy + h / 2 },
             engineers: { x: cx + side / 2, y: cy + h / 2 }
           };
+
+          // Other nodes: scatter into a noisy ring as subtle, drifting background
+          const backgroundNodesData = nodes.filter(d => !d.isSpecial);
+          const backgroundNodesSel = gNodes.selectAll('circle').filter(d => !d.isSpecial);
+          if (backgroundNodesData.length) {
+            // Reorder nodes around the ring in a round‑robin by type so colors are interleaved
+            const byType = d3.group(backgroundNodesData, d => d.type);
+            const typeKeys = Array.from(byType.keys());
+            const maxLen = d3.max(Array.from(byType.values()), arr => arr.length) || 0;
+            const ordered = [];
+            for (let i = 0; i < maxLen; i++) {
+              for (const k of typeKeys) {
+                const arr = byType.get(k);
+                if (arr && arr[i]) ordered.push(arr[i]);
+              }
+            }
+
+            const BASE_RING_RADIUS = Math.min(width, height) * 0.38;
+            const ringPos = {};
+            ordered.forEach((n, i) => {
+              const baseAngle = (2 * Math.PI * i) / backgroundNodesData.length - Math.PI / 2;
+              const jitterAngle = (Math.random() - 0.5) * 0.3; // +- ~34°
+              const angle = baseAngle + jitterAngle;
+              const jitterRadius = 0.88 + 0.12 * Math.random(); // 0.88–1.10
+              const r = BASE_RING_RADIUS * jitterRadius;
+              n.ringAngle = angle;
+              n.ringRadius = r;
+              ringPos[n.id] = {
+                x: cx + r * Math.cos(angle),
+                y: cy + r * Math.sin(angle)
+              };
+            });
+
+            let ringDriftTimer = null;
+            function startRingDrift() {
+              if (ringDriftTimer) return;
+              const t0 = Date.now();
+              ringDriftTimer = d3.timer(() => {
+                const elapsed = (Date.now() - t0) / 1000;
+                const omega = 0.06; // rad/s, very slow orbit
+                backgroundNodesSel.each(function (d) {
+                  const a0 = d.ringAngle || 0;
+                  const r0 = d.ringRadius || BASE_RING_RADIUS;
+                  const a = a0 + omega * elapsed;
+                  const breathing = 1 + 0.03 * Math.sin(elapsed * 0.45 + a0);
+                  const r = r0 * breathing;
+                  const x = cx + r * Math.cos(a);
+                  const y = cy + r * Math.sin(a);
+                  d3.select(this).attr('cx', x).attr('cy', y);
+                });
+              });
+            }
+
+            backgroundNodesSel
+              .attr('opacity', 0.55)
+              .transition().duration(1200).ease(d3.easeCubicInOut)
+              .attrTween('cx', function (d) {
+                const start = d.x;
+                const end = (ringPos[d.id] || { x: d.x }).x;
+                return function (t) { return start + (end - start) * t; };
+              })
+              .attrTween('cy', function (d) {
+                const start = d.y;
+                const end = (ringPos[d.id] || { y: d.y }).y;
+                return function (t) { return start + (end - start) * t; };
+              })
+              .attr('r', NODE_R)
+              .on('end', startRingDrift);
+          }
 
           var startPos = {
             task: { x: task.x, y: task.y },
