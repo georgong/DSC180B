@@ -95,12 +95,12 @@
     <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
 
     <script>
-      // Extracted from the previous Plotly offline HTML
+      // Metrics from Figure~\\ref{fig:bar}
       const CATEGORIES = ["MAE", "Smooth L1", "RMSE"];
       const SERIES = [
-        { name: "GraphSAGE", color: "rgb(31, 119, 180)", values: [0.20857170108433399, 0.377206958169608, 0.403929788150746] },
-        { name: "MLP",      color: "rgb(255, 127, 14)", values: [0.23319433595135666, 0.413067841966068, 0.456165492852813] },
-        { name: "LightGBM", color: "rgb(44, 160, 44)",  values: [0.20369812660998434, 0.363673573546607, 0.396964041351634] }
+        { name: "GraphSAGE", color: "rgb(31, 119, 180)", values: [1.5366, 1.2719, 8.4262] },
+        { name: "MLP",      color: "rgb(255, 127, 14)", values: [1.7866, 1.4974, 8.7856] },
+        { name: "LightGBM", color: "rgb(44, 160, 44)",  values: [2.0771, 1.8309,10.0344] }
       ];
 
       const svg = d3.select("#chart");
