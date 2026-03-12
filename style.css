@@ -448,6 +448,7 @@ body {
 }
 
 .result-frame-wrap {
+    margin-top: 1.5rem;
     width: 100%;
     aspect-ratio: 4 / 3;
     border-radius: 8px;
@@ -562,14 +563,14 @@ body {
 footer {
     text-align: center;
     padding: 3rem 2rem;
-    background: var(--primary); /* dark background */
-    color: #cbd5e1;             /* light-gray text for contrast */
+    background: #ffffff; /* 👈 改为纯白背景 */
+    color: var(--text-main); /* 👈 主文字改为深色 */
     font-size: 0.9rem;
 }
 .footer-note {
     margin-top: 0.5rem;
     font-size: 0.8rem;
-    color: rgba(203,213,225,0.85); /* slightly muted but readable on dark bg */
+    color: var(--text-light); /* 👈 次要文字改为灰色，保持层次感 */
     opacity: 1;
 }
 
@@ -813,8 +814,9 @@ footer {
     border-top: 1px solid #1e293b;
 }
 
+/* 去掉 Application 和 Demo 之间的边框 */
 #application + #demo {
-    border-top: 1px solid #1e293b;
+    border-top: none;
 }
 
 /* Add matching divider between demo and footer */
