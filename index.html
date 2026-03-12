@@ -192,71 +192,65 @@
             <h2>Interactive Dashboard</h2>
             <p>From predictive modeling to practical insights and operational visibility</p>
         </div>
-        
-        <!-- Intro description (scrolls with page) -->
         <div class="app-intro">
             <h3>Graph-Based Scheduling Intelligence</h3>
             <p>A web application that provides insights in task completion time and operational risk.</p>
         </div>
+    </section>
 
-        <!-- Full-screen scroll-snapping gallery -->
-        <div class="story-gallery" id="storyGallery" aria-label="Application screenshots">
-
-            <div class="story-slide" data-index="0">
-                <img src="assets/data upload.png" alt="Data Upload" class="story-img" loading="lazy">
-                <div class="story-caption">
-                    <span class="story-step">01 / 05</span>
-                    <h4>Data Upload</h4>
-                    <p>Upload a set of work order schedules to begin graph construction and inference.</p>
-                </div>
-            </div>
-
-            <div class="story-slide" data-index="1">
-                <img src="assets/dashboard.png" alt="Dashboard Overview" class="story-img" loading="lazy">
-                <div class="story-caption">
-                    <span class="story-step">02 / 05</span>
-                    <h4>Dashboard Overview</h4>
-                    <p>A high-level view of system-level metrics — workload distribution, task hours, and risk signals.</p>
-                </div>
-            </div>
-
-            <div class="story-slide" data-index="2">
-                <img src="assets/risk table.png" alt="Prediction Table" class="story-img" loading="lazy">
-                <div class="story-caption">
-                    <span class="story-step">03 / 05</span>
-                    <h4>Prediction Table</h4>
-                    <p>Per-task completion time predictions and risk flags surfaced directly in a sortable table.</p>
-                </div>
-            </div>
-
-            <div class="story-slide" data-index="3">
-                <img src="assets/plots.png" alt="Charts" class="story-img" loading="lazy">
-                <div class="story-caption">
-                    <span class="story-step">04 / 05</span>
-                    <h4>Analytical Charts</h4>
-                    <p>Interactive visualizations reveal temporal patterns and regional workload imbalances.</p>
-                </div>
-            </div>
-
-            <div class="story-slide" data-index="4">
-                <img src="assets/graph.png" alt="Graph Visualization" class="story-img" loading="lazy">
-                <div class="story-caption">
-                    <span class="story-step">05 / 05</span>
-                    <h4>Graph Visualization</h4>
-                    <p>Explore the heterogeneous scheduling graph — engineer–task relationships rendered interactively.</p>
-                </div>
-            </div>
-
-            <!-- Scroll progress dots -->
-            <nav class="story-dots" aria-label="Gallery navigation">
-                <button class="story-dot active" data-slide="0" aria-label="Slide 1"></button>
-                <button class="story-dot" data-slide="1" aria-label="Slide 2"></button>
-                <button class="story-dot" data-slide="2" aria-label="Slide 3"></button>
-                <button class="story-dot" data-slide="3" aria-label="Slide 4"></button>
-                <button class="story-dot" data-slide="4" aria-label="Slide 5"></button>
-            </nav>
+    <section class="story-slide" data-index="0" id="slide-0">
+        <img src="assets/data upload.png" alt="Data Upload" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">01 / 05</span>
+            <h4>Data Upload</h4>
+            <p>Upload a set of work order schedules to begin graph construction and inference.</p>
         </div>
     </section>
+
+    <section class="story-slide" data-index="1" id="slide-1">
+        <img src="assets/dashboard.png" alt="Dashboard Overview" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">02 / 05</span>
+            <h4>Dashboard Overview</h4>
+            <p>A high-level view of system-level metrics &mdash; workload distribution, task hours, and risk signals.</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="2" id="slide-2">
+        <img src="assets/risk table.png" alt="Prediction Table" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">03 / 05</span>
+            <h4>Prediction Table</h4>
+            <p>Per-task completion time predictions and risk flags surfaced directly in a sortable table.</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="3" id="slide-3">
+        <img src="assets/plots.png" alt="Charts" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">04 / 05</span>
+            <h4>Analytical Charts</h4>
+            <p>Interactive visualizations reveal temporal patterns and regional workload imbalances.</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="4" id="slide-4">
+        <img src="assets/graph.png" alt="Graph Visualization" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">05 / 05</span>
+            <h4>Graph Visualization</h4>
+            <p>Explore the heterogeneous scheduling graph &mdash; engineer&ndash;task relationships rendered interactively.</p>
+        </div>
+    </section>
+
+    <!-- Progress dots overlay – shown while any story-slide is visible -->
+    <nav class="story-dots" id="storyDots" aria-label="Gallery navigation">
+        <button class="story-dot active" data-slide="0" aria-label="Slide 1"></button>
+        <button class="story-dot" data-slide="1" aria-label="Slide 2"></button>
+        <button class="story-dot" data-slide="2" aria-label="Slide 3"></button>
+        <button class="story-dot" data-slide="3" aria-label="Slide 4"></button>
+        <button class="story-dot" data-slide="4" aria-label="Slide 5"></button>
+    </nav>
 
     <section id="demo" class="section bg-dark">
         <div class="section-header text-white">

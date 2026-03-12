@@ -15,6 +15,11 @@
     box-sizing: border-box;
 }
 
+/* --- Smooth scroll --- */
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Manrope', sans-serif;
     color: var(--text-main);
@@ -84,7 +89,7 @@ body {
     padding: 10rem 2rem 6rem;
     max-width: 1300px;
     margin: 0 auto;
-    min-height: 90vh; /* 撑满屏幕高度 */
+    min-height: 90vh;
     display: flex;
     align-items: center;
 }
@@ -540,8 +545,8 @@ body {
 footer {
     text-align: center;
     padding: 3rem 2rem;
-    background: #ffffff; /* 👈 改为纯白背景 */
-    color: var(--text-main); /* 👈 主文字改为深色 */
+    background: #ffffff;
+    color: var(--text-main);
     font-size: 0.9rem;
 }
 .footer-note {
@@ -552,37 +557,21 @@ footer {
 }
 
 /* =====================================================
-   SCROLLYTELLING GALLERY
+   SCROLLYTELLING GALLERY  (native-page-scroll version)
    ===================================================== */
 
-/* Outer scroll container – horizontal snap track */
-.story-gallery {
-    position: relative;
-    width: 100vw;
-    left: 50%;
-    transform: translateX(-50%);
-    height: 100vh;
-    display: flex;
-    flex-direction: row;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;          /* Firefox */
-}
-.story-gallery::-webkit-scrollbar { display: none; }
-
-/* Each slide fills the viewport exactly */
+/* Each slide is a full-viewport section in the normal page flow */
 .story-slide {
     position: relative;
-    flex: 0 0 100vw;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     scroll-snap-align: start;
+    scroll-snap-stop: always;      /* force stop on every slide, no skipping */
     display: flex;
-    align-items: flex-end;           /* caption sits at the bottom */
+    align-items: flex-end;
     justify-content: flex-start;
     overflow: hidden;
+    border-top: none;              /* override .section border if ever applied */
 }
 
 /* Full-bleed background image */
@@ -593,20 +582,37 @@ footer {
     height: 100%;
     object-fit: cover;
     object-position: center top;
-    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                filter   0.8s ease;
-    filter: brightness(0.55) saturate(0.9);
-    transform: scale(1.04);
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+                filter   1s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: brightness(0.5) saturate(0.85);
+    transform: scale(1.06);
     will-change: transform, filter;
 }
 
-/* Subtle zoom-in when slide enters view */
+/* On portrait screens (phones) switch to contain so nothing is cropped */
+@media (max-aspect-ratio: 1/1) {
+    .story-img {
+        object-fit: contain;
+        object-position: center center;
+        background: #020617;
+    }
+    .story-slide::after {
+        background:
+            linear-gradient(to top,
+                rgba(2, 6, 23, 0.96) 0%,
+                rgba(2, 6, 23, 0.55) 30%,
+                rgba(2, 6, 23, 0.10) 60%,
+                transparent          80%);
+    }
+}
+
+/* Smooth zoom + brighten when slide snaps into view */
 .story-slide.is-visible .story-img {
-    filter: brightness(0.72) saturate(1);
+    filter: brightness(0.75) saturate(1);
     transform: scale(1);
 }
 
-/* Gradient vignette so caption text is always legible */
+/* Gradient vignette */
 .story-slide::after {
     content: "";
     position: absolute;
@@ -617,6 +623,7 @@ footer {
             rgba(2, 6, 23, 0.45) 35%,
             transparent           70%);
     pointer-events: none;
+    z-index: 1;
 }
 
 /* Caption card */
@@ -626,7 +633,6 @@ footer {
     max-width: 640px;
     margin: 0 auto 4rem;
     padding: 2rem 2.5rem;
-    /* glass card */
     background: rgba(15, 23, 42, 0.55);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -637,10 +643,9 @@ footer {
         inset 0 1px 0 rgba(255, 255, 255, 0.07);
     /* enter animation */
     opacity: 0;
-    transform: translateY(28px);
-    transition: opacity 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s,
-                transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
-    /* center inside slide */
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s,
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
     margin-left: max(2rem, calc((100vw - 640px) / 2));
     margin-right: max(2rem, calc((100vw - 640px) / 2));
 }
@@ -670,19 +675,23 @@ footer {
     color: #94a3b8;
     line-height: 1.65;
     margin: 0;
-    opacity: 1 !important;   /* override .text-white p rule */
+    opacity: 1 !important;
 }
 
-/* Progress dots – fixed to right edge of the gallery */
+/* Progress dots – fixed, centred at bottom, only while slides are in view */
 .story-dots {
-    position: absolute;
-    right: 1.75rem;
-    top: 50%;
-    transform: translateY(-50%);
+    position: fixed;
+    bottom: 2rem;
+    left: 0;
+    width: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: center;
     gap: 10px;
-    z-index: 10;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 .story-dot {
     width: 8px;
@@ -691,6 +700,7 @@ footer {
     border: none;
     background: rgba(148, 163, 184, 0.4);
     cursor: pointer;
+    pointer-events: auto;
     transition: background 0.3s ease, transform 0.3s ease;
     padding: 0;
 }
@@ -710,7 +720,7 @@ footer {
     }
     .story-caption h4 { font-size: 1.2rem; }
     .story-caption p  { font-size: 0.88rem; }
-    .story-dots { right: 0.9rem; }
+    .story-dots { bottom: 1rem; gap: 8px; }
 }
 
 .logo-opt1 {
@@ -897,11 +907,6 @@ footer {
         height: 220px;
     }
 
-}
-
-#application.section {
-    padding-bottom: 0;
-    overflow: hidden;
 }
 
 #application .section-header {

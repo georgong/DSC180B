@@ -36,39 +36,48 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// --- Scrollytelling gallery ---
+// --- Scrollytelling gallery (native page scroll) ---
 (function () {
-    const gallery = document.getElementById('storyGallery');
-    if (!gallery) return;
+    const slides  = document.querySelectorAll('.story-slide');
+    const dots    = document.querySelectorAll('.story-dot');
+    const dotsNav = document.getElementById('storyDots');
+    if (!slides.length || !dotsNav) return;
 
-    const slides = gallery.querySelectorAll('.story-slide');
-    const dots   = gallery.querySelectorAll('.story-dot');
+    // Track how many slides are currently intersecting
+    let visibleCount = 0;
 
-    // Activate a dot
     function setActiveDot(index) {
         dots.forEach((d, i) => d.classList.toggle('active', i === index));
     }
 
-    // IntersectionObserver: mark slide visible when ≥ 55% in view
+    // Observe slides against the viewport (root: null)
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const slide = entry.target;
             if (entry.isIntersecting) {
                 slide.classList.add('is-visible');
                 setActiveDot(Number(slide.dataset.index));
+                visibleCount++;
             } else {
                 slide.classList.remove('is-visible');
+                visibleCount = Math.max(0, visibleCount - 1);
             }
         });
-    }, { root: gallery, threshold: 0.55 });
+        // Show dots only while at least one slide is on screen
+        dotsNav.style.opacity = visibleCount > 0 ? '1' : '0';
+        dotsNav.style.pointerEvents = visibleCount > 0 ? 'none' : 'none'; // gaps still pass-through
+    }, {
+        root: null,        // viewport
+        threshold: 0.5     // fire when half the slide is visible
+    });
 
     slides.forEach(s => observer.observe(s));
 
-    // Dot click → scroll that slide into view
+    // Dot click → smooth-scroll the target slide into view
     dots.forEach(dot => {
         dot.addEventListener('click', () => {
-            const target = gallery.querySelector(`.story-slide[data-index="${dot.dataset.slide}"]`);
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            const target = document.getElementById(`slide-${dot.dataset.slide}`);
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
         });
     });
 })();
