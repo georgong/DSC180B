@@ -910,6 +910,11 @@ footer {
     border-top: none;
 }
 
+/* Dark border for demo section to match dark background theme */
+#demo {
+    border-top: 1px solid #1e293b;
+}
+
 /* --- 合作方 Logo 样式 --- */
 .partner-logos {
     display: flex;
