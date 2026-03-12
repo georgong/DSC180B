@@ -478,22 +478,15 @@ body {
 .text-white p { opacity: 0.8; }
 .text-white .section-tag { color: #38bdf8 !important; }
 
-.app-showcase {
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-}
-
-.app-desc {
+/* --- Application intro blurb --- */
+.app-intro {
+    max-width: 680px;
+    margin: 0 auto 3rem;
+    text-align: center;
     color: #cbd5e1;
-    max-width: 100%;
 }
-.app-desc h3 { color: white; font-size: 1.5rem; margin-bottom: 1rem; }
-.app-desc ul { list-style: none; margin-bottom: 2rem; }
-.app-desc li { margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative; }
-.app-desc li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); }
+.app-intro h3 { color: white; font-size: 1.5rem; margin-bottom: 0.75rem; }
+.app-intro p  { font-size: 1rem; color: #94a3b8; }
 
 .btn-outline {
     background: transparent;
@@ -519,10 +512,6 @@ body {
         0 24px 60px rgba(2, 6, 23, 0.38),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(18px);
-}
-
-.media-stage-slideshow {
-    aspect-ratio: 16 / 10;
 }
 
 .media-stage-video {
@@ -562,73 +551,166 @@ footer {
     opacity: 1;
 }
 
-/* Slideshow styles (small, self-contained) */
-.app-visual { display: flex; flex-direction: column; width: 100%; }
-.screen {
+/* =====================================================
+   SCROLLYTELLING GALLERY
+   ===================================================== */
+
+/* Outer scroll container – horizontal snap track */
+.story-gallery {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: row;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;          /* Firefox */
+}
+.story-gallery::-webkit-scrollbar { display: none; }
+
+/* Each slide fills the viewport exactly */
+.story-slide {
+    position: relative;
+    flex: 0 0 100vw;
+    width: 100vw;
+    height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: flex-end;           /* caption sits at the bottom */
+    justify-content: flex-start;
     overflow: hidden;
-    border-radius: 18px;
-    background:
-        radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 48%),
-        linear-gradient(180deg, #0f172a, #020617);
-    border: 1px solid rgba(51, 65, 85, 0.9);
 }
-.screen-slideshow {
-    aspect-ratio: 16 / 10;
-}
-.slide-img {
+
+/* Full-bleed background image */
+.story-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+    object-position: center top;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                filter   0.8s ease;
+    filter: brightness(0.55) saturate(0.9);
+    transform: scale(1.04);
+    will-change: transform, filter;
 }
-.slideshow-btn {
-    position:absolute;
-    top:50%;
-    transform:translateY(-50%);
-    background:rgba(15, 23, 42, 0.72);
-    color:#f8fafc;
-    border:1px solid rgba(148, 163, 184, 0.28);
-    width:44px;
-    height:44px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    font-size:20px;
-    box-shadow:0 10px 30px rgba(2, 6, 23, 0.28);
+
+/* Subtle zoom-in when slide enters view */
+.story-slide.is-visible .story-img {
+    filter: brightness(0.72) saturate(1);
+    transform: scale(1);
+}
+
+/* Gradient vignette so caption text is always legible */
+.story-slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to top,
+            rgba(2, 6, 23, 0.88) 0%,
+            rgba(2, 6, 23, 0.45) 35%,
+            transparent           70%);
+    pointer-events: none;
+}
+
+/* Caption card */
+.story-caption {
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto 4rem;
+    padding: 2rem 2.5rem;
+    /* glass card */
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 20px;
+    box-shadow:
+        0 24px 60px rgba(2, 6, 23, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    /* enter animation */
     opacity: 0;
-    transition: opacity 0.3s ease, background 0.3s ease, transform 0.2s ease, border-color 0.2s ease;
-    backdrop-filter: blur(10px);
+    transform: translateY(28px);
+    transition: opacity 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s,
+                transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
+    /* center inside slide */
+    margin-left: max(2rem, calc((100vw - 640px) / 2));
+    margin-right: max(2rem, calc((100vw - 640px) / 2));
 }
-.screen:hover .slideshow-btn { opacity: 1; }
-.slideshow-btn:hover {
-    background:rgba(2, 132, 199, 0.22);
-    border-color: rgba(56, 189, 248, 0.45);
+.story-slide.is-visible .story-caption {
+    opacity: 1;
+    transform: translateY(0);
 }
-.slideshow-btn:active { transform:translateY(-50%) scale(.95); }
-.slideshow-btn.left { left:18px; }
-.slideshow-btn.right { right:18px; }
-.slide-caption {
-    margin-top: 1rem;
-    color: #94a3b8;
+
+.story-step {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #38bdf8;
+    margin-bottom: 0.6rem;
+}
+.story-caption h4 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+.story-caption p {
     font-size: 0.95rem;
-    text-align: left;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    padding-left: 0.2rem;
+    color: #94a3b8;
+    line-height: 1.65;
+    margin: 0;
+    opacity: 1 !important;   /* override .text-white p rule */
 }
-/* small responsive adjustments */
-@media (max-width:640px){
-    .media-stage { padding: 0.75rem; border-radius: 18px; }
-    .slideshow-btn { width:34px; height:34px; font-size:18px; opacity: 1; /* always show on mobile */ }
-    .slide-caption { font-size:0.85rem; margin-top: 0.8rem; }
+
+/* Progress dots – fixed to right edge of the gallery */
+.story-dots {
+    position: absolute;
+    right: 1.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+}
+.story-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(148, 163, 184, 0.4);
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+    padding: 0;
+}
+.story-dot.active {
+    background: #38bdf8;
+    transform: scale(1.4);
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+    .story-caption {
+        padding: 1.4rem 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2.5rem;
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    .story-caption h4 { font-size: 1.2rem; }
+    .story-caption p  { font-size: 0.88rem; }
+    .story-dots { right: 0.9rem; }
 }
 
 .logo-opt1 {
@@ -817,8 +899,13 @@ footer {
 
 }
 
-#application + #demo {
-    border-top: 1px solid #1e293b;
+#application.section {
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+#application .section-header {
+    margin-bottom: 2rem;
 }
 
 /* Add matching divider between demo and footer */

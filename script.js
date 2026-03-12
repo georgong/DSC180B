@@ -36,49 +36,39 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// Simple slideshow logic. Update filenames/captions as needed.
-(function(){
-    const images = [
-        'assets/data upload.png',
-        'assets/dashboard.png',
-        'assets/risk table.png',
-        'assets/plots.png',
-        'assets/graph.png',
-    ];
-    const captions = [
-        'Data Upload',
-        'Dashboard Overview',
-        'Prediction Table',
-        'Charts',
-        'Graph Visualization',
-    ];
+// --- Scrollytelling gallery ---
+(function () {
+    const gallery = document.getElementById('storyGallery');
+    if (!gallery) return;
 
-    // If your asset filenames differ, replace strings above with actual filenames.
-    let idx = 0;
-    const imgEl = document.getElementById('slideImg');
-    const capEl = document.getElementById('slideCaption');
-    const prevBtn = document.getElementById('slidePrev');
-    const nextBtn = document.getElementById('slideNext');
+    const slides = gallery.querySelectorAll('.story-slide');
+    const dots   = gallery.querySelectorAll('.story-dot');
 
-    function show(i){
-        idx = (i + images.length) % images.length;
-        imgEl.src = images[idx];
-        imgEl.alt = captions[idx];
-        capEl.textContent = captions[idx];
+    // Activate a dot
+    function setActiveDot(index) {
+        dots.forEach((d, i) => d.classList.toggle('active', i === index));
     }
 
-    prevBtn.addEventListener('click', () => show(idx - 1));
-    nextBtn.addEventListener('click', () => show(idx + 1));
+    // IntersectionObserver: mark slide visible when ≥ 55% in view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const slide = entry.target;
+            if (entry.isIntersecting) {
+                slide.classList.add('is-visible');
+                setActiveDot(Number(slide.dataset.index));
+            } else {
+                slide.classList.remove('is-visible');
+            }
+        });
+    }, { root: gallery, threshold: 0.55 });
 
-    // keyboard support
-    document.addEventListener('keydown', (e)=> {
-        if (e.key === 'ArrowLeft') show(idx - 1);
-        if (e.key === 'ArrowRight') show(idx + 1);
+    slides.forEach(s => observer.observe(s));
+
+    // Dot click → scroll that slide into view
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const target = gallery.querySelector(`.story-slide[data-index="${dot.dataset.slide}"]`);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        });
     });
-
-    // preload images
-    images.forEach(src => { const p=new Image(); p.src=src; });
-
-    // initialize
-    show(0);
 })();
