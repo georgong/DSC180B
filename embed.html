@@ -183,6 +183,24 @@
       task_status_id: 'TASK_STATUSES',
     };
 
+    // Static list: adjust anytime to control which node attributes are shown/usable.
+    // - Affects tooltip display (below)
+    // - Affects "Color by" categorical node attributes (attr_*) options
+    const DISPLAY_ATTRS = [
+      'task_type_id',
+      'district_id',
+      'department_id',
+    ];
+
+    // Static list: add extra "Color by" option ids if desired.
+    // By default we only show index/y/attr_* from DISPLAY_ATTRS.
+    const COLOR_BY_EXTRA_OPTIONS = [
+      // e.g. 'node_feat_SOME_FEATURE', 'neighbor_ASSIGNMENT_SOME_FEATURE'
+    ];
+
+    // If false, hides the "Index" option in the Color by dropdown.
+    const SHOW_INDEX_OPTION = false;
+
     function init() {
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x0a0a0f);
@@ -297,21 +315,18 @@
         colorValue = (v != null && v !== '' && !(typeof v === 'number' && isNaN(v))) ? String(v) : '—';
         const attrKey = optMeta.id.startsWith('attr_') ? optMeta.id.replace('attr_', '') : null;
         const tableKey = attrKey ? ATTR_TO_TABLE[attrKey] : null;
-        if (tableKey && colorValue !== '—') {
-          const name = getIdName(tableKey, colorValue);
-          if (name) colorValue = `${colorValue}  →  ${name}`;
-        }
+        // Keep tooltip clean: do not expand id -> name mapping here
       } else if (colorBy === 'index') {
         colorLabel = 'Index';
         colorValue = String(idx);
       }
       let lines = [`id: ${nodeIds[idx]}`, `${colorLabel}: ${colorValue}`];
       const attrs = node && node.attributes ? node.attributes : {};
-      const extra = ['engineer_id', 'task_id', 'task_type_id', 'district_id', 'department_id', 'y'];
-      for (const k of extra) {
+      for (const k of DISPLAY_ATTRS) {
         if (attrs[k] == null || attrs[k] === -1 || attrs[k] === '') continue;
-        const display = k === 'y' ? String(attrs[k]) : formatIdAndName(k, attrs[k]);
-        lines.push(`${k}: ${display}`);
+        // Keep tooltip clean: show raw values only (no id -> name, no y)
+        if (k === 'y') continue;
+        lines.push(`${k}: ${String(attrs[k])}`);
       }
       tooltipEl.textContent = lines.join('\n');
       const dx = 14, dy = 14;
@@ -431,18 +446,23 @@
       const n = nodes.length;
       if (n === 0) return;
 
-      const attrKeys = ['task_type_id', 'district_id', 'department_id'];
+      // Optional index (debug / fallback)
+      if (SHOW_INDEX_OPTION) colorOptionsMeta.push({ id: 'index', label: 'Index', type: 'continuous' });
 
-      const yValues = [];
-      let hasY = false;
-      for (let i = 0; i < n; i++) {
-        const attrs = (nodes[i] && nodes[i].attributes) || {};
-        const v = attrs.y;
-        if (v != null) { hasY = true; yValues.push(Number(v)); } else yValues.push(null);
-      }
-      if (hasY) {
-        colorOptionsMeta.push({ id: 'attr_y', label: 'Node · (Completion Time)', type: 'continuous' });
-        optionValues['attr_y'] = { type: 'continuous', values: yValues };
+      const attrKeys = DISPLAY_ATTRS.filter(k => k !== 'y' && k.endsWith('_id'));
+
+      if (DISPLAY_ATTRS.includes('y')) {
+        const yValues = [];
+        let hasY = false;
+        for (let i = 0; i < n; i++) {
+          const attrs = (nodes[i] && nodes[i].attributes) || {};
+          const v = attrs.y;
+          if (v != null) { hasY = true; yValues.push(Number(v)); } else yValues.push(null);
+        }
+        if (hasY) {
+          colorOptionsMeta.push({ id: 'attr_y', label: 'Node · (Completion Time)', type: 'continuous' });
+          optionValues['attr_y'] = { type: 'continuous', values: yValues };
+        }
       }
 
       for (const key of attrKeys) {
@@ -452,8 +472,13 @@
           const v = attrs[key];
           values.push(v != null && v !== -1 ? parseInt(v, 10) : null);
         }
+        // Encode categorical values to dense 0..K-1 indices for stable palettes
+        const uniq = Array.from(new Set(values.filter(v => v != null)));
+        uniq.sort((a, b) => a - b);
+        const map = new Map(uniq.map((v, i) => [v, i]));
+        const encoded = values.map(v => (v == null ? null : map.get(v)));
         colorOptionsMeta.push({ id: `attr_${key}`, label: `Node · ${key.replace(/_id$/, '')}`, type: 'categorical' });
-        optionValues[`attr_${key}`] = { type: 'categorical', values };
+        optionValues[`attr_${key}`] = { type: 'categorical', values: encoded };
       }
 
       let nodeAttrList = null;
@@ -519,14 +544,24 @@
     function populateColorSelect() {
       const sel = document.getElementById('color-by');
       sel.innerHTML = '';
-      for (const opt of colorOptionsMeta) {
+      const allowedAttrIds = new Set(
+        DISPLAY_ATTRS.filter(k => k.endsWith('_id')).map(k => `attr_${k}`)
+      );
+      const allow = (opt) => {
+        if (opt.id === 'index') return SHOW_INDEX_OPTION;
+        if (opt.id === 'attr_y') return DISPLAY_ATTRS.includes('y');
+        if (opt.id.startsWith('attr_')) return allowedAttrIds.has(opt.id);
+        return COLOR_BY_EXTRA_OPTIONS.includes(opt.id);
+      };
+
+      for (const opt of colorOptionsMeta.filter(allow)) {
         const o = document.createElement('option');
         o.value = opt.id;
         o.textContent = opt.label;
         sel.appendChild(o);
       }
-      const preferY = colorOptionsMeta.find(o => o.id === 'attr_y');
-      colorBy = preferY ? preferY.id : (colorOptionsMeta[0] ? colorOptionsMeta[0].id : '');
+      const preferY = DISPLAY_ATTRS.includes('y') ? colorOptionsMeta.find(o => o.id === 'attr_y') : null;
+      colorBy = preferY ? preferY.id : (sel.options[0] ? sel.options[0].value : '');
       sel.value = colorBy;
     }
 

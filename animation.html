@@ -105,8 +105,10 @@
       };
 
       const SPECIAL_IDS = ['task', 'assignment', 'engineers'];
-      const NODE_R = 5.5;
-      const LOGO_NODE_R = 20;
+      const VIEW_MIN = Math.min(width, height);
+      // Scale visual sizes with viewport so logo/background stay proportional across screens
+      const NODE_R = Math.max(4.8, Math.min(6.6, VIEW_MIN * 0.010));
+      const LOGO_NODE_R = Math.max(14, Math.min(26, VIEW_MIN * 0.036));
 
       let svg, gMap, gNodes, gLinks, gLogoLabel;
       let projection, path;
@@ -387,7 +389,7 @@
         setTimeout(() => {
           const cx = width / 2;
           const cy = height / 2;
-          const r = 72;
+          const r = LOGO_NODE_R * 3.6; // keep same ratio as before (72 vs 20)
           const left = { x: cx - r * Math.sqrt(3) / 2, y: cy + r / 2 };
           const right = { x: cx + r * Math.sqrt(3) / 2, y: cy + r / 2 };
           const top = { x: cx, y: cy - r };
@@ -416,13 +418,14 @@
               }
             }
 
-            const BASE_RING_RADIUS = Math.min(width, height) * 0.38;
+            // Ring radius proportional to logo triangle radius (prevents distortion across viewport sizes)
+            const BASE_RING_RADIUS = r * 2.65;
             const ringPos = {};
             ordered.forEach((n, i) => {
               const baseAngle = (2 * Math.PI * i) / backgroundNodesData.length - Math.PI / 2;
-              const jitterAngle = (Math.random() - 0.5) * 0.3; // +- ~34°
+              const jitterAngle = (Math.random() - 0.5) * 0.3; // controls how "round" the ring looks
               const angle = baseAngle + jitterAngle;
-              const jitterRadius = 0.88 + 0.12 * Math.random(); // 0.88–1.10
+              const jitterRadius = 0.88 + 0.12 * Math.random(); // controls radial roughness
               const r = BASE_RING_RADIUS * jitterRadius;
               n.ringAngle = angle;
               n.ringRadius = r;
