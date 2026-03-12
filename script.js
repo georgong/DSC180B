@@ -65,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         // Show dots only while at least one slide is on screen
         dotsNav.style.opacity = visibleCount > 0 ? '1' : '0';
-        dotsNav.style.pointerEvents = visibleCount > 0 ? 'none' : 'none'; // gaps still pass-through
     }, {
         root: null,        // viewport
         threshold: 0.5     // fire when half the slide is visible

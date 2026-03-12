@@ -493,17 +493,6 @@ body {
 .app-intro h3 { color: white; font-size: 1.5rem; margin-bottom: 0.75rem; }
 .app-intro p  { font-size: 1rem; color: #94a3b8; }
 
-.btn-outline {
-    background: transparent;
-    border: 2px solid rgba(255,255,255,0.2);
-    color: white;
-    padding: 0.8rem 1.5rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-.btn-outline:hover { border-color: white; background: rgba(255,255,255,0.05); }
-
 .media-stage {
     width: 100%;
     margin: 0 auto;
@@ -565,13 +554,11 @@ footer {
     position: relative;
     width: 100%;
     height: 100vh;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;      /* force stop on every slide, no skipping */
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
     overflow: hidden;
-    border-top: none;              /* override .section border if ever applied */
+    border-top: none;
 }
 
 /* Full-bleed background image */
@@ -921,11 +908,6 @@ footer {
 /* 去掉 Application 和 Demo 之间的边框 */
 #application + #demo {
     border-top: none;
-}
-
-/* Add matching divider between demo and footer */
-#demo + footer {
-    border-top: 1px solid #1e293b;
 }
 
 /* --- 合作方 Logo 样式 --- */
