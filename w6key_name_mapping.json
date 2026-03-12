@@ -1,8 +1,4 @@
 {
-  "_meta": {
-    "description": "W6KEY -> name per table for id-to-name transform",
-    "source_dir": "/Users/gongzhenghao/Desktop/DSC180B"
-  },
   "DEPARTMENT": {
     "126763012": "DEPARTMENT 1",
     "126765056": "DEPARTMENT 2",
