@@ -132,6 +132,7 @@
     <div class="controls-row">
       <label for="color-by">Color by:</label>
       <select id="color-by"></select>
+      <span id="color-desc" style="margin-left: 12px; font-size: 11px; opacity: 0.75;"></span>
     </div>
   </div>
 
@@ -200,6 +201,22 @@
 
     // If false, hides the "Index" option in the Color by dropdown.
     const SHOW_INDEX_OPTION = false;
+
+    // Human descriptions for each Color by option.
+    // TODO: Edit these texts as you like.
+    const COLOR_BY_DESCRIPTIONS = {
+      attr_task_type_id: 'Task types form clear localized clusters.',
+      attr_department_id: 'Departments appear partially grouped across the embedding space.',
+      attr_y: 'Completion time buckets exhibit a coarse vertical gradient.',
+      // Add more entries here if you expose extra options.
+    };
+
+    function updateColorDescription() {
+      const el = document.getElementById('color-desc');
+      if (!el) return;
+      const desc = COLOR_BY_DESCRIPTIONS[colorBy] || '';
+      el.textContent = desc;
+    }
 
     function init() {
       scene = new THREE.Scene();
@@ -420,11 +437,13 @@
       populateColorSelect();
       build3DLayout();
       buildPointsOnly();
+      updateColorDescription();
       document.getElementById('color-by').addEventListener('change', (e) => {
         colorBy = e.target.value;
         updatePointColors();
         if (typeof updateColorbar === 'function') updateColorbar();
         if (flowRegionsOn) buildFlowRegionsOverlay();
+        updateColorDescription();
       });
       const flowRegionsBtn = document.getElementById('flow-regions-btn');
       if (flowRegionsBtn) {
@@ -564,6 +583,7 @@
       const preferY = DISPLAY_ATTRS.includes('y') ? colorOptionsMeta.find(o => o.id === 'attr_y') : null;
       colorBy = preferY ? preferY.id : (sel.options[0] ? sel.options[0].value : '');
       sel.value = colorBy;
+      updateColorDescription();
     }
 
     function hslToRgb(h, s, l) {
