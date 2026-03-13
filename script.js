@@ -36,49 +36,47 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// Simple slideshow logic. Update filenames/captions as needed.
-(function(){
-    const images = [
-        'assets/data upload.png',
-        'assets/dashboard.png',
-        'assets/risk table.png',
-        'assets/plots.png',
-        'assets/graph.png',
-    ];
-    const captions = [
-        'Data Upload',
-        'Dashboard Overview',
-        'Prediction Table',
-        'Charts',
-        'Graph Visualization',
-    ];
+// --- Scrollytelling gallery (native page scroll) ---
+(function () {
+    const slides  = document.querySelectorAll('.story-slide');
+    const dots    = document.querySelectorAll('.story-dot');
+    const dotsNav = document.getElementById('storyDots');
+    if (!slides.length || !dotsNav) return;
 
-    // If your asset filenames differ, replace strings above with actual filenames.
-    let idx = 0;
-    const imgEl = document.getElementById('slideImg');
-    const capEl = document.getElementById('slideCaption');
-    const prevBtn = document.getElementById('slidePrev');
-    const nextBtn = document.getElementById('slideNext');
+    // Track how many slides are currently intersecting
+    let visibleCount = 0;
 
-    function show(i){
-        idx = (i + images.length) % images.length;
-        imgEl.src = images[idx];
-        imgEl.alt = captions[idx];
-        capEl.textContent = captions[idx];
+    function setActiveDot(index) {
+        dots.forEach((d, i) => d.classList.toggle('active', i === index));
     }
 
-    prevBtn.addEventListener('click', () => show(idx - 1));
-    nextBtn.addEventListener('click', () => show(idx + 1));
-
-    // keyboard support
-    document.addEventListener('keydown', (e)=> {
-        if (e.key === 'ArrowLeft') show(idx - 1);
-        if (e.key === 'ArrowRight') show(idx + 1);
+    // Observe slides against the viewport (root: null)
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const slide = entry.target;
+            if (entry.isIntersecting) {
+                slide.classList.add('is-visible');
+                setActiveDot(Number(slide.dataset.index));
+                visibleCount++;
+            } else {
+                slide.classList.remove('is-visible');
+                visibleCount = Math.max(0, visibleCount - 1);
+            }
+        });
+        // Show dots only while at least one slide is on screen
+        dotsNav.style.opacity = visibleCount > 0 ? '1' : '0';
+    }, {
+        root: null,        // viewport
+        threshold: 0.5     // fire when half the slide is visible
     });
 
-    // preload images
-    images.forEach(src => { const p=new Image(); p.src=src; });
+    slides.forEach(s => observer.observe(s));
 
-    // initialize
-    show(0);
+    // Dot click → smooth-scroll the target slide into view
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const target = document.getElementById(`slide-${dot.dataset.slide}`);
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
 })();

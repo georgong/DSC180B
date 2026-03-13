@@ -192,34 +192,65 @@
             <h2>Interactive Dashboard</h2>
             <p>From predictive modeling to practical insights and operational visibility</p>
         </div>
-        
-        <div class="app-showcase">
-            <div class="app-desc"> 
-                <h3>Graph-Based Scheduling Intelligence</h3>
-                <p>An web application that provides insights in task completion time and operational risk. Schedulers can:
-                    <br>
-                    <br>
-                </p>
-                <ul>
-                    <li>Upload a set of schedules</li>
-                    <li>Construct a relational graph and run prediction<li>
-                    <li>Analyze system-level metrics (workload, task hours)</li>
-                    <li>Visualize relationships across the scheduling network</li>
-                </ul>
-            </div>
-            <div class="app-visual">
-                <div class="monitor">
-                    <div class="screen">
-                        <!-- Image slideshow: update filenames in the JS arrays below if different -->
-                        <button class="slideshow-btn left" aria-label="Previous" id="slidePrev">&#9664;</button>
-                        <img src="" alt="Dashboard slide" class="slide-img" id="slideImg">
-                        <button class="slideshow-btn right" aria-label="Next" id="slideNext">&#9654;</button>
-                    </div>
-                </div>
-                <div class="slide-caption" id="slideCaption">Caption</div>
-            </div>
+        <div class="app-intro">
+            <h3>Graph-Based Scheduling Intelligence</h3>
+            <p>A web application that provides insights in task completion time and operational risk.</p>
         </div>
     </section>
+
+    <section class="story-slide" data-index="0" id="slide-0">
+        <img src="assets/data upload.png" alt="Data Upload" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">01 / 05</span>
+            <h4>Data Upload</h4>
+            <p>User uploads a set of work order schedules to begin graph construction and model inference.</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="1" id="slide-1">
+        <img src="assets/dashboard.png" alt="Dashboard Overview" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">02 / 05</span>
+            <h4>Dashboard Overview</h4>
+            <p>Dashboard shows high-level overview of key scheduling metrics (task completion time, workload imbalance, district-level performance, etc).</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="2" id="slide-2">
+        <img src="assets/risk table.png" alt="Prediction Table" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">03 / 05</span>
+            <h4>Prediction Table</h4>
+            <p>Per-assignment completion time predictions displays in a sortable table. Users can export data in CSV format for further analysis.</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="3" id="slide-3">
+        <img src="assets/plots.png" alt="Charts" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">04 / 05</span>
+            <h4>Analytical Charts</h4>
+            <p>Chart visualizations show performance distributions by engineer, department, and district, revealing patterns in operational risk.</p>
+        </div>
+    </section>
+
+    <section class="story-slide" data-index="4" id="slide-4">
+        <img src="assets/graph.png" alt="Graph Visualization" class="story-img" loading="lazy">
+        <div class="story-caption">
+            <span class="story-step">05 / 05</span>
+            <h4>Graph Visualization</h4>
+            <p>Users can interactively explore the heterogeneous graph, visualizing relationships among nodes (e.g., assignments, tasks, engineers) alongside predicted risk values.</p>
+        </div>
+    </section>
+
+    <!-- Progress dots overlay – shown while any story-slide is visible -->
+    <nav class="story-dots" id="storyDots" aria-label="Gallery navigation">
+        <button class="story-dot active" data-slide="0" aria-label="Slide 1"></button>
+        <button class="story-dot" data-slide="1" aria-label="Slide 2"></button>
+        <button class="story-dot" data-slide="2" aria-label="Slide 3"></button>
+        <button class="story-dot" data-slide="3" aria-label="Slide 4"></button>
+        <button class="story-dot" data-slide="4" aria-label="Slide 5"></button>
+    </nav>
 
     <section id="demo" class="section bg-dark">
         <div class="section-header text-white">
@@ -228,7 +259,7 @@
             <p>A demonstration of our scheduling intelligence platform.</p>
         </div>
 
-        <div class="demo-container">
+        <div class="media-stage media-stage-video">
             <div class="video-wrapper">
                 <iframe
                 src="https://www.youtube-nocookie.com/embed/sKoo88jWcME?rel=0"
@@ -240,6 +271,10 @@
                 </iframe>
             </div>
         </div>
+
+        <p class="demo-side-note">
+            Note: Data shown in the images and demo are artificially generated for demonstration purposes.
+        </p>
     </section>
     <footer>
         <div class="footer-content">
