@@ -132,8 +132,9 @@
     <div class="controls-row">
       <label for="color-by">Color by:</label>
       <select id="color-by"></select>
-      <span id="color-desc" style="margin-left: 12px; font-size: 11px; opacity: 0.75;"></span>
     </div>
+    <!-- Color-by description; text is controlled in JS via COLOR_BY_DESCRIPTIONS -->
+    <div id="color-desc" style="margin-top: 6px; font-size: 11px; opacity: 0.75;"></div>
   </div>
 
   <script type="importmap">
@@ -216,6 +217,25 @@
       if (!el) return;
       const desc = COLOR_BY_DESCRIPTIONS[colorBy] || '';
       el.textContent = desc;
+    }
+
+    function avoidStateLabelOverlap() {
+      const btn = document.getElementById('flow-regions-btn');
+      const label = document.getElementById('state-label');
+      if (!btn || !label) return;
+      // Reset to centered position defined in CSS
+      label.style.left = '';
+      label.style.transform = '';
+      const btnRect = btn.getBoundingClientRect();
+      const labelRect = label.getBoundingClientRect();
+      const overlapHorizontally = !(labelRect.left >= btnRect.right + 8 || labelRect.right <= btnRect.left - 8);
+      const overlapVertically = !(labelRect.bottom <= btnRect.top || labelRect.top >= btnRect.bottom);
+      if (overlapHorizontally && overlapVertically) {
+        // Move label to the right of the button
+        const offsetLeft = btnRect.right + 16;
+        label.style.left = `${offsetLeft}px`;
+        label.style.transform = 'translateX(0)';
+      }
     }
 
     function init() {
@@ -438,6 +458,7 @@
       build3DLayout();
       buildPointsOnly();
       updateColorDescription();
+      avoidStateLabelOverlap();
       document.getElementById('color-by').addEventListener('change', (e) => {
         colorBy = e.target.value;
         updatePointColors();
@@ -456,6 +477,7 @@
       }
       updateStateLabel();
       requestAnimationFrame(animate);
+      window.addEventListener('resize', avoidStateLabelOverlap);
     }
 
     function buildColorOptions() {
@@ -497,7 +519,9 @@
         uniq.sort((a, b) => a - b);
         const map = new Map(uniq.map((v, i) => [v, i]));
         const encoded = values.map(v => (v == null ? null : map.get(v)));
-        colorOptionsMeta.push({ id: `attr_${key}`, label: `Node · ${key.replace(/_id$/, '')}`, type: 'categorical' });
+        const base = key.replace(/_id$/, '');
+        const pretty = base.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        colorOptionsMeta.push({ id: `attr_${key}`, label: `Node · ${pretty}`, type: 'categorical' });
         optionValues[`attr_${key}`] = { type: 'categorical', values: encoded };
       }
 
@@ -1057,6 +1081,7 @@
       const el = document.getElementById('state-label');
       if (!el) return;
       el.textContent = isUnfolded ? 'T-SNE 2D (assignments)' : 'Assignments · Last hidden (128-d)';
+      avoidStateLabelOverlap();
     }
 
     function buildFallbackScene() {
