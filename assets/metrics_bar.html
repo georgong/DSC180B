@@ -202,8 +202,24 @@
             tooltip.style.opacity = "1";
           })
           .on("mousemove", (evt) => {
-            tooltip.style.left = `${evt.clientX}px`;
-            tooltip.style.top = `${evt.clientY}px`;
+            const wrap = document.getElementById("wrap");
+            const wrapRect = wrap.getBoundingClientRect();
+            const ttRect = tooltip.getBoundingClientRect();
+            const centerX = wrapRect.left + wrapRect.width / 2;
+            const preferRight = evt.clientX < centerX;
+            const dx = 14;
+            const dy = 12;
+            let left = evt.clientX + (preferRight ? dx : -ttRect.width - dx);
+            let top = evt.clientY + dy;
+            const pad = 8;
+            const maxLeft = wrapRect.right - ttRect.width - pad;
+            const minLeft = wrapRect.left + pad;
+            const maxTop = wrapRect.bottom - ttRect.height - pad;
+            const minTop = wrapRect.top + pad;
+            left = Math.max(minLeft, Math.min(maxLeft, left));
+            top = Math.max(minTop, Math.min(maxTop, top));
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
           })
           .on("mouseleave", () => {
             tooltip.style.opacity = "0";
