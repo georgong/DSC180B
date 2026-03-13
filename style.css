@@ -546,123 +546,161 @@ footer {
 }
 
 /* =====================================================
-   SCROLLYTELLING GALLERY  (native-page-scroll version)
+   SCROLLYTELLING GALLERY (Modern Showcase Card Layout)
    ===================================================== */
 
-/* Each slide is a full-viewport section in the normal page flow */
+/* 背景容器：保持深色沉浸感，但不再强制图片铺满 */
 .story-slide {
     position: relative;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh; /* 保证滚动时依然有按屏停顿的节奏感 */
     display: flex;
-    align-items: flex-end;
-    justify-content: flex-start;
-    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    background-color: #0f172a; /* 深色背景与上下文融合 */
+    padding: 6rem 2rem;
+    box-sizing: border-box;
     border-top: none;
+    overflow: hidden;
 }
 
-/* Full-bleed background image */
-.story-img {
-    position: absolute;
-    inset: 0;
+/* 内容主容器：控制最大宽度和进场动画 */
+.story-content-wrapper {
+    max-width: 1100px;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
-                filter   1s cubic-bezier(0.16, 1, 0.3, 1);
-    filter: brightness(0.5) saturate(0.85);
-    transform: scale(1.06);
-    will-change: transform, filter;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    /* 配合现有的 JS 实现优雅的放大浮现动画 */
+    opacity: 0.4;
+    transform: translateY(40px) scale(0.96);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* On portrait screens (phones) switch to contain so nothing is cropped */
-@media (max-aspect-ratio: 1/1) {
-    .story-img {
-        object-fit: contain;
-        object-position: center center;
-        background: #020617;
-    }
-    .story-slide::after {
-        background:
-            linear-gradient(to top,
-                rgba(2, 6, 23, 0.96) 0%,
-                rgba(2, 6, 23, 0.55) 30%,
-                rgba(2, 6, 23, 0.10) 60%,
-                transparent          80%);
-    }
+.story-slide.is-visible .story-content-wrapper {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
-/* Smooth zoom + brighten when slide snaps into view */
-.story-slide.is-visible .story-img {
-    filter: brightness(0.75) saturate(1);
-    transform: scale(1);
-}
-
-/* Gradient vignette */
-.story-slide::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(to top,
-            rgba(2, 6, 23, 0.88) 0%,
-            rgba(2, 6, 23, 0.45) 35%,
-            transparent           70%);
-    pointer-events: none;
+/* 图片外框：增加 Apple 风格的阴影和高光边框 */
+.story-img-wrapper {
+    width: 100%;
+    max-height: 70vh; /* 🌟 关键修改：限制最大高度，大约占屏幕的 70%，给下方文字留空间 */
+    border-radius: 16px;
+    overflow: hidden;
+    background: transparent; 
+    border: none; 
     z-index: 1;
+    display: flex;            /* 🌟 关键修改：启用 Flex 布局 */
+    justify-content: center;  /* 🌟 关键修改：让长图在容器内水平居中 */
+    align-items: center;      /* 🌟 关键修改：让长图在容器内垂直居中 */
 }
 
-/* Caption card */
+/* 图片本体：完整展示，绝不裁剪 */
+.story-img {
+    width: 100%;
+    max-height: 70vh; /* 🌟 关键修改：图片本身的高度也不能超过 70vh */
+    height: auto;
+    display: block;
+    object-fit: contain; /* 🌟 保持缩放不裁剪。遇到纵向图时，宽度会自动缩小，两边露出底色 */
+}
+
+/* 说明文本框：上移叠在图片底边，毛玻璃质感 */
 .story-caption {
     position: relative;
     z-index: 2;
-    max-width: 640px;
-    margin: 0 auto 4rem;
+    width: 90%;
+    max-width: 700px;
+    margin-top: -3rem; /* 核心技巧：稍微遮挡一点点图片底部边缘，产生层次感 */
     padding: 2rem 2.5rem;
-    background: rgba(15, 23, 42, 0.55);
+    background: rgba(30, 41, 59, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(56, 189, 248, 0.2);
     border-radius: 20px;
-    box-shadow:
-        0 24px 60px rgba(2, 6, 23, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    /* enter animation */
-    opacity: 0;
-    transform: translateY(32px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s,
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
-    margin-left: max(2rem, calc((100vw - 640px) / 2));
-    margin-right: max(2rem, calc((100vw - 640px) / 2));
-}
-.story-slide.is-visible .story-caption {
-    opacity: 1;
-    transform: translateY(0);
+    box-shadow: 
+        0 24px 60px rgba(2, 6, 23, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    text-align: left;
+    /* 原有的文字颜色无需改变 */
 }
 
 .story-step {
     display: inline-block;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #38bdf8;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
 }
+
 .story-caption h4 {
-    font-size: 1.45rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #f8fafc;
     margin-bottom: 0.5rem;
     letter-spacing: -0.5px;
 }
+
 .story-caption p {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: #94a3b8;
     line-height: 1.65;
     margin: 0;
-    opacity: 1 !important;
+}
+
+/* --- 移动端完美适配 --- */
+@media (max-width: 768px) {
+    .story-slide {
+        padding: 4rem 1.5rem;
+        min-height: auto; /* 移动端解除 100vh 限制，允许自然滚动 */
+    }
+    
+    .story-content-wrapper {
+        transform: translateY(20px) scale(0.98); /* 减弱移动端动画幅度 */
+    }
+
+    .story-img-wrapper {
+        border-radius: 12px;
+    }
+
+    .story-caption {
+        width: 95%;
+        margin-top: -1.5rem; /* 移动端重叠度减小 */
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+
+    .story-caption h4 { font-size: 1.25rem; }
+    .story-caption p  { font-size: 0.9rem; }
+
+    /* 缩小整体 Section 的左右留白（从 2rem 减到 1rem） */
+    .section {
+        padding: 4rem 1rem; 
+    }
+
+    /* 缩小 Result 卡片内部的左右留白（从 2rem 减到 1rem 或更小） */
+    .result-placeholder {
+        padding: 1.5rem 0.8rem; 
+    }
+
+    /* 稍微缩小标题和图表之间的间距，让移动端排版更紧凑 */
+    .result-placeholder h4 {
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .result-placeholder p {
+        font-size: 0.9rem;
+    }
+    
+    /* 让包裹 iframe 的外框填满空间，不再因为边框显得拥挤 */
+    .result-frame-wrap, .embed-wrap {
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
 }
 
 /* Progress dots – fixed, centred at bottom, only while slides are in view */
@@ -968,4 +1006,26 @@ footer {
     font-size: 0.8rem;
     color: #94a3b8;
     opacity: 0.9;
+}
+
+/* --- 修复 Application 标题与下方第一个卡片的过大间距 --- */
+#application {
+    padding-bottom: 1rem !important; /* 原本是 6rem，大幅缩小底部留白 */
+    border-bottom: none; 
+}
+
+.app-intro {
+    margin-bottom: 1rem; /* 原本是 3rem，缩小段落底部的间距 */
+}
+
+#slide-0 {
+    padding-top: 2rem; /* 稍微缩小第一张卡片的顶部间距，让它向上贴近标题 */
+}
+
+@media (max-width: 768px) {
+    /* ... 之前的移动端代码保留 ... */
+
+    .story-img-wrapper, .story-img {
+        max-height: 55vh; /* 移动端屏幕更小，把最大高度再压低一点，确保文字框能露出来 */
+    }
 }
