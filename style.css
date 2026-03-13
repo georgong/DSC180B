@@ -1020,12 +1020,25 @@ footer {
 
 #slide-0 {
     padding-top: 2rem; /* 稍微缩小第一张卡片的顶部间距，让它向上贴近标题 */
+    scroll-margin-top: 65px;
 }
 
 @media (max-width: 768px) {
-    /* ... 之前的移动端代码保留 ... */
-
     .story-img-wrapper, .story-img {
         max-height: 55vh; /* 移动端屏幕更小，把最大高度再压低一点，确保文字框能露出来 */
+    }
+
+    /* 强制去除固定宽高的限制，让 iframe 容器 100% 适配手机屏幕 */
+    .embed-wrap {
+        min-width: unset !important; /* 取消 320px 的硬性限制 */
+        width: 100% !important;
+        margin-top: 1rem;
+        height: 70vh; /* 稍微增加高度，给底下两行菜单留出空间 */
+    }
+
+    .embed-viz {
+        min-width: unset !important;
+        width: 100% !important;
+        height: 100% !important;
     }
 }
