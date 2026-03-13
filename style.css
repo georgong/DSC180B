@@ -15,6 +15,11 @@
     box-sizing: border-box;
 }
 
+/* --- Smooth scroll --- */
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Manrope', sans-serif;
     color: var(--text-main);
@@ -84,7 +89,7 @@ body {
     padding: 10rem 2rem 6rem;
     max-width: 1300px;
     margin: 0 auto;
-    min-height: 90vh; /* 撑满屏幕高度 */
+    min-height: 90vh;
     display: flex;
     align-items: center;
 }
@@ -478,83 +483,49 @@ body {
 .text-white p { opacity: 0.8; }
 .text-white .section-tag { color: #38bdf8 !important; }
 
-.app-showcase {
-    max-width: 900px;
+/* --- Application intro blurb --- */
+.app-intro {
+    max-width: 680px;
+    margin: 0 auto 3rem;
+    text-align: center;
+    color: #cbd5e1;
+}
+.app-intro h3 { color: white; font-size: 1.5rem; margin-bottom: 0.75rem; }
+.app-intro p  { font-size: 1rem; color: #94a3b8; }
+
+.media-stage {
+    width: 100%;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-    align-items: stretch;
-}
-
-.app-desc { color: #cbd5e1; }
-.app-desc h3 { color: white; font-size: 1.5rem; margin-bottom: 1rem; }
-.app-desc ul { list-style: none; margin-bottom: 2rem; }
-.app-desc li { margin-bottom: 0.5rem; padding-left: 1.5rem; position: relative; }
-.app-desc li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); }
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid rgba(255,255,255,0.2);
-    color: white;
-    padding: 0.8rem 1.5rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-.btn-outline:hover { border-color: white; background: rgba(255,255,255,0.05); }
-
-.monitor {
-    background: #1e293b;
     padding: 1rem;
-    border-radius: 12px;
-    border: 1px solid #334155;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-
-    /* make monitor match video-wrapper aspect ratio (16:9) */
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    display: block;
-}
-.screen {
-    background: #0f172a;
-    height: 100%;           /* fill .monitor when inside it */
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #475569;
-    border: 2px dashed #334155;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) padding-box,
+        linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(99, 102, 241, 0.2), rgba(148, 163, 184, 0.12)) border-box;
+    border: 1px solid transparent;
+    border-radius: 24px;
+    box-shadow:
+        0 24px 60px rgba(2, 6, 23, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(18px);
 }
 
-/* --- Demo Section --- */
-.demo-container {
-    width: 100%;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 1rem;                   /* match .monitor */
-    background: #1e293b;             /* dark slate to match slideshow container */
-    border: 1px solid #334155;       /* same border used by .monitor */
-    border-radius: 12px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* match .monitor's shadow */
-    color: #cbd5e1;                  /* ensure readable text on dark bg */
+.media-stage-video {
+    max-width: 1080px;
 }
 
 .video-wrapper {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-    height: 0;
     overflow: hidden;
-    border-radius: 8px;
-    background: #0f172a;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 48%),
+        linear-gradient(180deg, #0f172a, #020617);
+    border: 1px solid rgba(51, 65, 85, 0.9);
 }
 
 .video-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
+    display: block;
     width: 100%;
     height: 100%;
 }
@@ -563,8 +534,8 @@ body {
 footer {
     text-align: center;
     padding: 3rem 2rem;
-    background: #ffffff; /* 👈 改为纯白背景 */
-    color: var(--text-main); /* 👈 主文字改为深色 */
+    background: #ffffff;
+    color: var(--text-main);
     font-size: 0.9rem;
 }
 .footer-note {
@@ -574,49 +545,169 @@ footer {
     opacity: 1;
 }
 
-/* Slideshow styles (small, self-contained) */
-.app-visual { display: flex; flex-direction: column; width: 100%; }
-.app-visual .monitor { display:flex; align-items:center; justify-content:center; width: 100%; }
-.screen { position:relative; width:100%; height:100%; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:6px; }
-.slide-img { width:100%; height:100%; object-fit:contain; display:block; }
-.slideshow-btn {
-    position:absolute;
-    top:50%;
-    transform:translateY(-50%);
-    background:rgba(15, 23, 42, 0.85); /* Changed to dark background matching app UI */
-    color:#f8fafc;
-    border:1px solid #334155;
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    font-size:20px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+/* =====================================================
+   SCROLLYTELLING GALLERY  (native-page-scroll version)
+   ===================================================== */
+
+/* Each slide is a full-viewport section in the normal page flow */
+.story-slide {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    overflow: hidden;
+    border-top: none;
+}
+
+/* Full-bleed background image */
+.story-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+                filter   1s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: brightness(0.5) saturate(0.85);
+    transform: scale(1.06);
+    will-change: transform, filter;
+}
+
+/* On portrait screens (phones) switch to contain so nothing is cropped */
+@media (max-aspect-ratio: 1/1) {
+    .story-img {
+        object-fit: contain;
+        object-position: center center;
+        background: #020617;
+    }
+    .story-slide::after {
+        background:
+            linear-gradient(to top,
+                rgba(2, 6, 23, 0.96) 0%,
+                rgba(2, 6, 23, 0.55) 30%,
+                rgba(2, 6, 23, 0.10) 60%,
+                transparent          80%);
+    }
+}
+
+/* Smooth zoom + brighten when slide snaps into view */
+.story-slide.is-visible .story-img {
+    filter: brightness(0.75) saturate(1);
+    transform: scale(1);
+}
+
+/* Gradient vignette */
+.story-slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to top,
+            rgba(2, 6, 23, 0.88) 0%,
+            rgba(2, 6, 23, 0.45) 35%,
+            transparent           70%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Caption card */
+.story-caption {
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto 4rem;
+    padding: 2rem 2.5rem;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 20px;
+    box-shadow:
+        0 24px 60px rgba(2, 6, 23, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    /* enter animation */
     opacity: 0;
-    transition: opacity 0.3s ease, background 0.3s ease, transform 0.2s ease;
-    backdrop-filter: blur(4px);
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s,
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+    margin-left: max(2rem, calc((100vw - 640px) / 2));
+    margin-right: max(2rem, calc((100vw - 640px) / 2));
 }
-.screen:hover .slideshow-btn { opacity: 1; }
-.slideshow-btn:hover { background:rgba(30, 41, 59, 0.95); } /* Slightly lighter dark shade on hover */
-.slideshow-btn:active { transform:translateY(-50%) scale(.95); }
-.slideshow-btn.left { left:12px; }
-.slideshow-btn.right { right:12px; }
-.slide-caption {
-    margin-top: 1rem;
-    color: #94a3b8;
+.story-slide.is-visible .story-caption {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.story-step {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #38bdf8;
+    margin-bottom: 0.6rem;
+}
+.story-caption h4 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+.story-caption p {
     font-size: 0.95rem;
-    text-align: center;
-    font-weight: 500;
-    letter-spacing: 0.5px;
+    color: #94a3b8;
+    line-height: 1.65;
+    margin: 0;
+    opacity: 1 !important;
 }
-/* small responsive adjustments */
-@media (max-width:640px){
-    .screen { height:220px; }
-    .slideshow-btn { width:34px; height:34px; font-size:18px; opacity: 1; /* always show on mobile */ }
-    .slide-caption { font-size:0.85rem; margin-top: 0.8rem; }
+
+/* Progress dots – fixed, centred at bottom, only while slides are in view */
+.story-dots {
+    position: fixed;
+    bottom: 2rem;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.story-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(148, 163, 184, 0.4);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 0.3s ease, transform 0.3s ease;
+    padding: 0;
+}
+.story-dot.active {
+    background: #38bdf8;
+    transform: scale(1.4);
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+    .story-caption {
+        padding: 1.4rem 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2.5rem;
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    .story-caption h4 { font-size: 1.2rem; }
+    .story-caption p  { font-size: 0.88rem; }
+    .story-dots { bottom: 1rem; gap: 8px; }
 }
 
 .logo-opt1 {
@@ -805,8 +896,8 @@ footer {
 
 }
 
-#application + #demo {
-    border-top: 1px solid #1e293b;
+#application .section-header {
+    margin-bottom: 2rem;
 }
 
 /* Add matching divider between demo and footer */
@@ -819,9 +910,9 @@ footer {
     border-top: none;
 }
 
-/* Add matching divider between demo and footer */
-#demo + footer {
-    border-top: 1px solid #1e293b;
+/* Dark-theme divider between gallery/application images and demo */
+#demo {
+    border-top: 1px solid #334155;
 }
 
 /* --- 合作方 Logo 样式 --- */
@@ -868,4 +959,13 @@ footer {
     .model-text {
         display: none;
     }
+}
+
+/* --- Demo 侧边注释样式 --- */
+.demo-side-note {
+    margin: 1rem auto 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    opacity: 0.9;
 }
